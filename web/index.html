@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeStop</title>
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.15/css/jquery.dataTables.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+<body>
+    <div class="col-md-12 text-center"> 
+        <table id="grid-rooms" class="table table-bordered table-hover display" width="100%"></table>
+        <br>
+        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#createRoom">Criar</button>
+        <button id="btn-go-room" type="button" class="btn btn-primary" style="display: none;">Entrar</button>
+    </div>
+
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+
+    <!-- Modal Create Room -->
+    <div class="modal fade" id="createRoom" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Nova Sala</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="players">Jogadores</label>
+                        <input type="number" class="form-control" id="players" placeholder="Número máximo de jogadores">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Sair</button>
+                    <button id="btn-create-room" type="button" class="btn btn-primary">Criar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Error Room-->
+    <div class="modal fade" id="errorRoom" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Ocorreu um problema.</h5>
+            </div>
+            <div class="modal-body">
+                Ops... Ocorreu um problema, por favor tente mais tarde.
+            </div>
+        </div>
+        </div>
+    </div>
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.15/js/jquery.dataTables.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script type="text/javascript">
+
+    // fill table room
+    function fillTableRoom(result)
+    {
+        var dataSet = [];
+        result.forEach(function(data)
+        {
+            dataSet.push([
+                data.number,
+                data.maxPlayer
+            ]);
+        });
+        var table = $("#grid-rooms").DataTable({
+            destroy: true,
+            searching: false, 
+            paging: false, 
+            info: false,
+            responsive: true,
+            data: dataSet,
+            columns: [
+                { title: 'Número da sala' },
+                { title: 'Máximo jogadores' }
+            ],
+        });
+    }
+
+    // request to get rooms list
+    function getRooms()
+    {
+        $.get("http://127.0.0.1:8080/room", function(data, status){
+            fillTableRoom(data);
+            addEventTableRoom();
+        }).fail(function() {
+            $('#errorRoom').modal({backdrop: 'static', keyboard: false})  
+        });
+    }
+
+    // refresh request each 10s
+    setInterval(function()
+    { 
+        var table = $("#grid-rooms").DataTable();
+        table.clear().draw();
+        getRooms();
+    }, 10000);
+    
+    // add event click in row
+    function addEventTableRoom()
+    {
+        var table = $("#grid-rooms").DataTable();
+        $('#grid-rooms tbody').on('click', 'tr', function () {
+            if($(this).hasClass('selected')){
+                $(this).removeClass('selected');
+                localStorage.removeItem("roomNumber");
+                $('#btn-go-room').hide();
+            }
+            else{
+                table.$('tr.selected').removeClass('selected');
+                $(this).addClass('selected');
+                localStorage.setItem("roomNumber", Number($(this).find("td").eq(0).html()));
+                $('#btn-go-room').show();
+            }
+        });
+    };
+
+    // enter room
+    $("#btn-go-room").click(function(){
+        window.location.href = "room.html";
+    });
+
+    // create room
+    $("#btn-create-room").click(function(){
+        var room = {
+            maxPlayer: $("#players").val()
+        }
+
+        $.ajax({
+            url: 'http://127.0.0.1:8080/room',
+            type: 'post',
+            dataType: 'json',
+            contentType: 'application/json',
+            data: JSON.stringify(room),
+            success: function (data) {
+                localStorage.clear();
+                localStorage.setItem("roomNumber", data.number);
+                localStorage.setItem("roomAdmin", true);
+                window.location.href = "room.html";
+            }
+        });
+    });
+
+    // load room list
+    getRooms();
+</script>
+</html>

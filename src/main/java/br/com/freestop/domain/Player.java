@@ -13,9 +13,7 @@ public class Player {
 
 	private String name;
 
-	public static Player create(String nome) {
-		Player player = new Player(nome);
+	private boolean admin;
 
-		return player;
-	}
+	private int number;
 }
