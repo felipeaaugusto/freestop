@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Round</title>
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.15/css/jquery.dataTables.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+<body>
+    <div class="card">
+        <h4 id="numberRoomText" class="card-header"></h5>
+    </div>
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script>
+    // request to get room
+    function getRoom()
+    {
+        var numberRoom = localStorage.getItem("roomNumber");
+        $.get("http://127.0.0.1:8080/room/" + numberRoom, function(data, status){
+            $('#numberRoomText').text("Sala: " + data.number);
+            checkPlayerInRoom(data);
+        }).fail(function() {
+            window.location.pathname = "/";
+        });
+    }
+
+    // verify if player in room
+    function checkPlayerInRoom(data)
+    {
+        var PLAYERS = data.players;
+        var userExist = false;
+        PLAYERS.forEach(function(player){
+            if (player.number == localStorage.getItem("playerNumber"))
+            {
+                userExist = true;
+            }
+        });
+
+        if (!userExist)
+        {
+            localStorage.clear();
+            window.location.pathname = "/";
+        }
+    }
+
+    getRoom();
+</script>
+
+</html>

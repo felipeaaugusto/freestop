@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FreeStop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css" />
     <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.15/css/jquery.dataTables.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 </head>
@@ -31,8 +32,29 @@
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="players">Jogadores</label>
-                        <input type="number" class="form-control" id="players" placeholder="Número máximo de jogadores">
+                        <label for="maxPlayer">Jogadores</label>
+                        <input type="number" class="form-control" id="maxPlayer" placeholder="Número máximo de jogadores">
+                    </div>
+                    <div class="form-group">
+                        <label for="roundTime">Tempo por rodada</label>
+                        <input type="number" class="form-control" id="roundTime" placeholder="Tempo por rodada em segundos">
+                    </div>
+                    <div class="form-group">
+                        <label for="totalRounds">Total de rodadas</label>
+                        <input type="number" class="form-control" id="totalRounds" placeholder="Quantidade de rodadas">
+                    </div>
+                    <div class="form-group">
+                        <label for="letters">Letras</label><br>
+                        <select class="selectpicker" id="letters" multiple data-live-search="true">
+                        </select>     
+                    </div>
+                    <div class="form-group">
+                        <label for="categories">Categorias</label><br>
+                        <select class="selectpicker" id="categories" multiple data-live-search="true">
+                        </select>     
+                    </div>
+                    <div id="errorDivCreateRoom" class="alert alert-danger d-none" role="alert">
+                        <span id="errorTextCreateRoom"></span>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -43,17 +65,37 @@
         </div>
     </div>
 
+    <!-- Modal Cancel Room -->
+    <div class="modal fade" id="cancelRoom" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="numberRoomTextModalCancelRoom"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Não</button>
+                    <button id="btn-cancel-room" type="button" class="btn btn-primary">Sim</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Error Room-->
     <div class="modal fade" id="errorRoom" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Ocorreu um problema.</h5>
+            <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Ocorreu um problema.</h5>
+                </div>
+                <div class="modal-body">
+                    Ops... Ocorreu um problema!
+                </div>
             </div>
-            <div class="modal-body">
-                Ops... Ocorreu um problema, por favor tente mais tarde.
-            </div>
-        </div>
         </div>
     </div>
 </body>
@@ -61,7 +103,107 @@
 <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.15/js/jquery.dataTables.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
 <script type="text/javascript">
+    // global variables
+    // define here
+    var LETTERS = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
+    var CATEGORIES = ["Nome", "Carro", "Palavra em Inglês", "Banda", "Cor", "Time Esportivo", "Comida"]
+
+    // refresh request each 10s
+    setInterval(function()
+    { 
+        reloadTableRoom();
+    }, 10000);
+    
+    // reload rooms in table
+    function reloadTableRoom()
+    {
+        var table = $("#grid-rooms").DataTable();
+        table.clear().draw();
+        getRooms();
+    }
+
+    // add event click in row
+    function addEventTableRoom()
+    {
+        var table = $("#grid-rooms").DataTable();
+        $('#grid-rooms tbody').on('click', 'tr', function () {
+            if($(this).hasClass('selected')){
+                $(this).removeClass('selected');
+                localStorage.removeItem("roomNumber");
+                $('#btn-go-room').hide();
+            }
+            else{
+                table.$('tr.selected').removeClass('selected');
+                $(this).addClass('selected');
+                localStorage.setItem("roomNumber", Number($(this).find("td").eq(0).html()));
+                $('#btn-go-room').show();
+            }
+        });
+    };
+
+    // event click to enter room
+    $("#btn-go-room").click(function()
+    {
+        goToRoom();
+    });
+
+    function goToRoom(numberRoom)
+    {
+        if (numberRoom != undefined)
+        {
+            localStorage.setItem("roomNumber", Number(numberRoom));
+        }
+        window.location.href = "room.html";
+    }
+
+    // event click to create room
+    $("#btn-create-room").click(function()
+    {
+        postCancelRoom();
+
+        $('#errorDivCreateRoom').addClass('d-none'); 
+
+        var categories = $("#categories").val();
+        var categoriesObj = [];
+        categories.forEach(function(category){
+            categoriesObj.push({
+                name: category
+            })
+        });
+
+        var room = {
+            maxPlayer: $("#maxPlayer").val(),
+            roundTime: $("#roundTime").val(),
+            totalRounds: $("#totalRounds").val(),
+            letters: $("#letters").val(),
+            categories: categoriesObj
+        }
+
+        $.ajax({
+            url: 'http://127.0.0.1:8080/room',
+            type: 'post',
+            dataType: 'json',
+            contentType: 'application/json',
+            data: JSON.stringify(room),
+            success: function (data) {
+                localStorage.clear();
+                localStorage.setItem("roomNumber", data.number);
+                localStorage.setItem("roomAdmin", true);
+                window.location.href = "room.html";
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                $('#errorDivCreateRoom').removeClass('d-none'); 
+                $('#errorTextCreateRoom').text("AVISO! " + XMLHttpRequest.responseJSON.message);
+            }
+        });
+    });
+
+    // event click to cancel room
+    $("#btn-cancel-room").click(function(){
+        postCancelRoom();
+    });
 
     // fill table room
     function fillTableRoom(result)
@@ -84,7 +226,7 @@
             columns: [
                 { title: 'Número da sala' },
                 { title: 'Máximo jogadores' }
-            ],
+            ]
         });
     }
 
@@ -95,64 +237,84 @@
             fillTableRoom(data);
             addEventTableRoom();
         }).fail(function() {
-            $('#errorRoom').modal({backdrop: 'static', keyboard: false})  
+            $('#errorRoom').modal({backdrop: 'static', keyboard: false})
+            $('#cancelRoom').modal('hide');
+            localStorage.clear();
         });
     }
 
-    // refresh request each 10s
-    setInterval(function()
-    { 
-        var table = $("#grid-rooms").DataTable();
-        table.clear().draw();
-        getRooms();
-    }, 10000);
-    
-    // add event click in row
-    function addEventTableRoom()
+    function postCancelRoom()
     {
-        var table = $("#grid-rooms").DataTable();
-        $('#grid-rooms tbody').on('click', 'tr', function () {
-            if($(this).hasClass('selected')){
-                $(this).removeClass('selected');
-                localStorage.removeItem("roomNumber");
-                $('#btn-go-room').hide();
-            }
-            else{
-                table.$('tr.selected').removeClass('selected');
-                $(this).addClass('selected');
-                localStorage.setItem("roomNumber", Number($(this).find("td").eq(0).html()));
-                $('#btn-go-room').show();
-            }
-        });
-    };
+        var roomNumber = localStorage.getItem("roomNumber");
+        var isAdmin = localStorage.getItem("roomAdmin");
 
-    // enter room
-    $("#btn-go-room").click(function(){
-        window.location.href = "room.html";
-    });
-
-    // create room
-    $("#btn-create-room").click(function(){
-        var room = {
-            maxPlayer: $("#players").val()
+        if (isAdmin)
+        {
+            $.ajax({
+                url: 'http://127.0.0.1:8080/room/' + roomNumber + '/cancel',
+                type: 'post',
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function (data) {
+                    localStorage.clear();
+                    $('#cancelRoom').modal('hide');
+                    reloadTableRoom();
+                }
+            });
         }
+    }
 
-        $.ajax({
-            url: 'http://127.0.0.1:8080/room',
-            type: 'post',
-            dataType: 'json',
-            contentType: 'application/json',
-            data: JSON.stringify(room),
-            success: function (data) {
-                localStorage.clear();
-                localStorage.setItem("roomNumber", data.number);
-                localStorage.setItem("roomAdmin", true);
-                window.location.href = "room.html";
-            }
+    // alert to cancel room, when root user go to home
+    function openModalCancelRoom()
+    {
+        var roomNumber = localStorage.getItem("roomNumber")
+        var isAdmin = localStorage.getItem("roomAdmin");
+
+        if (isAdmin)
+        {
+            $('#cancelRoom').modal('show');
+            $('#numberRoomTextModalCancelRoom').text("Cancelar Sala: " + roomNumber);
+        }
+    }
+
+    // init combobox's
+    function initCBCreateRoom()
+    {
+        LETTERS.forEach(function(letter){
+            $('#letters').append($('<option>').val(letter).text(letter).prop("selected", true))
         });
-    });
 
-    // load room list
-    getRooms();
+        CATEGORIES.forEach(function(category){
+            $('#categories').append($('<option>').val(category).text(category).prop("selected", true))
+        });
+    }
+
+    function getRoomParams()
+    {
+        var url_string = window.location.href;
+        var url = new URL(url_string);
+        return url.searchParams.get("room");
+    }
+
+    function initHome()
+    {
+        var roomParamUrl = getRoomParams();
+
+        if (roomParamUrl != undefined)
+        {
+            goToRoom(roomParamUrl);
+        } else {
+            // load room list
+            getRooms();
+
+            // open modal to cancel room
+            openModalCancelRoom();
+
+            // init combobox's to create room
+            initCBCreateRoom();
+        }
+    }
+
+    initHome();
 </script>
 </html>

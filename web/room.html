@@ -6,6 +6,11 @@
     <title>Room</title>
     <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.15/css/jquery.dataTables.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style>
+        .admin-true, .admin-room-false {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <div class="card">
@@ -16,6 +21,7 @@
             <table id="grid-players" class="table table-bordered table-hover display" width="100%"></table>
             <br>
             <button id="btn-start-room" class="btn btn-primary">Iniciar</button>
+            <button id="btn-link-room" class="btn btn-warning">Gerar Link</button>
         </div>
     </div>
 
@@ -42,12 +48,38 @@
         </div>
     </div>
 
+    <!-- Modal Link Room -->
+    <div class="modal fade" id="linkRoom" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Gerar Link</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input class="form-control" id="textLinkRoom" type="text" disabled>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Sair</button>
+                    <button id="btn-copy-link-room" type="button" class="btn btn-primary">Copiar Link</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.15/js/jquery.dataTables.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 <script>
+    // global variables
+    // define here
+    var isAdmin = localStorage.getItem("roomAdmin") || false;
+    var PLAYERS = {};
+
     // request to get room
     function getRoom()
     {
@@ -56,7 +88,9 @@
             $('#numberRoomText').text("Sala: " + data.number);
             $('#maxPlayersRoomText').text("Número de jogadores: " + data.maxPlayer);
             fillTablePlayer(data.players);
+            PLAYERS = data.players;
             canStart(data);
+            start(data);
         }).fail(function() {
             window.location.pathname = "/";
         });
@@ -70,6 +104,25 @@
             $('#btn-start-room').prop('disabled', false);
         } else {
             $('#btn-start-room').prop('disabled', true);
+        }
+        checkPlayerInRoom();
+    }
+
+    // verify if player in room
+    function checkPlayerInRoom()
+    {
+        var userExist = false;
+        PLAYERS.forEach(function(player){
+            if (player.number == localStorage.getItem("playerNumber"))
+            {
+                userExist = true;
+            }
+        });
+
+        if (!userExist)
+        {
+            localStorage.clear();
+            window.location.pathname = "/";
         }
     }
 
@@ -113,7 +166,9 @@
         {
             dataSet.push([
                     data.name,
-                    data.admin
+                    '<button type="button" \
+                        class="btn btn-success admin-' + data.admin + ' admin-room-' + isAdmin + '" \
+                        onclick="removePlayer(' +  data.number + ')">Remover</button>'
             ]);
         });
         var table = $("#grid-players").DataTable({
@@ -125,9 +180,76 @@
             data: dataSet,
             columns: [
                 { title: 'Nome' },
-                { title: 'Admin' }
-            ],
+                { title: 'Remover' }
+            ]
         });
+    }
+
+    function removePlayer(numberPlayer)
+    {
+        var player = {};
+        PLAYERS.forEach(function(p){
+            if (p.number == numberPlayer)
+            {
+                player = p;
+            }
+        });
+
+        if (!player.admin || localStorage.getItem("playerNumber") != numberPlayer)
+        {
+            var roomNumber = localStorage.getItem("roomNumber")
+            $.ajax({
+                url: 'http://127.0.0.1:8080/room/'+ roomNumber +'/player/' + player.number + '/remove', 
+                type: 'post',
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function (data) {
+                    getRoom();        
+                }
+            });
+        }
+    }
+
+    // event click to generate link
+    $("#btn-link-room").click(function()
+    {
+        $('#linkRoom').modal('show');
+        var roomNumber = localStorage.getItem("roomNumber")
+        $("#textLinkRoom").val(window.location.origin + "?room=" + roomNumber);
+    });
+
+    // event click to copy link
+    $("#btn-copy-link-room").click(function(){
+        var copyText = document.getElementById("textLinkRoom");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999)
+        document.execCommand("copy");
+        $('#linkRoom').modal('hide');
+    });
+
+    // event click to start round
+    $("#btn-start-room").click(function()
+    {
+        var roomNumber = localStorage.getItem("roomNumber")
+
+        $.ajax({
+            url: 'http://127.0.0.1:8080/room/'+ roomNumber +'/start', 
+            type: 'post',
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (data) {
+                start(data);
+            }
+        });
+    });
+
+    // start round
+    function start(data)
+    {
+        if (data.started)
+        {
+            window.location.href = "round.html";
+        }
     }
 
     // show modal player

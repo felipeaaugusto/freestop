@@ -29,7 +29,9 @@ public class RoomController {
 
 	@RequestMapping(method = RequestMethod.POST, produces = { "application/json" })
 	public @ResponseBody Room create(@RequestBody Room room) {
-		Room createdRoom = roomService.create(Room.create(room.getMaxPlayer()));
+		Room newRoom = Room.create(room.getMaxPlayer(), room.getLetters(), room.getRoundTime(), room.getTotalRounds(),
+				room.getCategories());
+		Room createdRoom = roomService.create(newRoom);
 		return createdRoom;
 	}
 
@@ -48,6 +50,28 @@ public class RoomController {
 		return ResponseEntity.ok(room.get());
 	}
 
+	@RequestMapping(path = "{numberRoom}/start", method = RequestMethod.POST, produces = { "application/json" })
+	public @ResponseBody ResponseEntity<Room> start(@PathVariable Long numberRoom) {
+		Optional<Room> roomOptional = roomService.list().stream().filter(r -> r.getNumber() == numberRoom).findFirst();
+		if (roomOptional.isEmpty())
+			return ResponseEntity.notFound().build();
+
+		Room room = roomOptional.get();
+		room.start();
+		return ResponseEntity.ok(room);
+	}
+
+	@RequestMapping(path = "{numberRoom}/cancel", method = RequestMethod.POST, produces = { "application/json" })
+	public @ResponseBody ResponseEntity<Room> cancel(@PathVariable Long numberRoom) {
+		Optional<Room> roomOptional = roomService.list().stream().filter(r -> r.getNumber() == numberRoom).findFirst();
+		if (roomOptional.isEmpty())
+			return ResponseEntity.notFound().build();
+
+		Room room = roomOptional.get();
+		roomService.cancel(room);
+		return ResponseEntity.ok(room);
+	}
+
 	@RequestMapping(path = "{numberRoom}/player", method = RequestMethod.POST, produces = { "application/json" })
 	public @ResponseBody ResponseEntity<Player> addPlayer(@PathVariable Long numberRoom, @RequestBody Player player) {
 		Optional<Room> roomOptional = roomService.list().stream().filter(r -> r.getNumber() == numberRoom).findFirst();
@@ -56,6 +80,25 @@ public class RoomController {
 
 		Room room = roomOptional.get();
 		room.addPlayer(player);
+		return ResponseEntity.ok(player);
+	}
+
+	@RequestMapping(path = "{numberRoom}/player/{numberPlayer}/remove", method = RequestMethod.POST, produces = {
+			"application/json" })
+	public @ResponseBody ResponseEntity<Player> removePlayer(@PathVariable Long numberRoom,
+			@PathVariable Long numberPlayer) {
+		Optional<Room> roomOptional = roomService.list().stream().filter(r -> r.getNumber() == numberRoom).findFirst();
+		if (roomOptional.isEmpty())
+			return ResponseEntity.notFound().build();
+		Room room = roomOptional.get();
+
+		Optional<Player> optionalPlayer = room.getPlayers().stream().filter(p -> p.getNumber() == numberPlayer)
+				.findFirst();
+		if (optionalPlayer.isEmpty())
+			return ResponseEntity.notFound().build();
+
+		Player player = optionalPlayer.get();
+		room.removePlayer(player);
 		return ResponseEntity.ok(player);
 	}
 

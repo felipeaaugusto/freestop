@@ -2,6 +2,9 @@ package br.com.freestop;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import br.com.freestop.domain.Category;
@@ -13,7 +16,12 @@ public class RoomServiceTest {
 
 	@Test
 	public void create_game_success() {
-		Room room = Room.create(2);
+		List<Category> categories = new ArrayList<>();
+
+		categories.add(new Category("Teste 1", true));
+		categories.add(new Category("Teste 2", true));
+
+		Room room = Room.create(2, new char[] { 'A', 'B' }, 60, 5, categories);
 
 		RoomService roomService = new RoomService();
 
@@ -22,12 +30,6 @@ public class RoomServiceTest {
 
 		room.addPlayer(player1);
 		room.addPlayer(player2);
-
-		Category category = new Category("Comidas");
-
-		room.addCategory(category);
-
-		room.addLetters(new char[] { 'A', 'B' });
 
 		roomService.create(room);
 		room.start();

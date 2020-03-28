@@ -17,8 +17,11 @@ public class RoomService {
 		if (Objects.isNull(rooms))
 			rooms = new ArrayList<>();
 		rooms.add(room);
-		
 		return room;
+	}
+
+	public void cancel(Room room) {
+		rooms.remove(room);
 	}
 
 	public List<Room> list() {
