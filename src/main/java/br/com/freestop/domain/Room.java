@@ -3,6 +3,7 @@ package br.com.freestop.domain;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 
 import lombok.AllArgsConstructor;
@@ -28,6 +29,8 @@ public class Room {
 
 	private List<Category> categories;
 
+	private List<Round> rounds;
+
 	private char[] letters;
 
 	private boolean started;
@@ -49,18 +52,6 @@ public class Room {
 		players.remove(player);
 	}
 
-	public void addCategory(Category category) {
-		if (isStarted())
-			throw new RuntimeException("It is no longer allowed to add categories to this game.");
-		if (Objects.isNull(categories))
-			categories = new ArrayList<>();
-		categories.add(category);
-	}
-
-	public void addLetters(char[] letters) {
-		this.letters = letters;
-	}
-
 	public void start() {
 		if (maxPlayer != players.size())
 			throw new RuntimeException("Minimum players not reached");
@@ -68,7 +59,38 @@ public class Room {
 			throw new RuntimeException("There are no categories created.");
 		if (letters.length < 2)
 			throw new RuntimeException("There are no letters created.");
+
+		if (Objects.isNull(rounds))
+			rounds = new ArrayList<>();
+		char letter = raffleLetter();
+		Round newRound = Round.create(rounds.size() + 1, letter, roundTime);
+		rounds.add(newRound);
+
 		started = true;
+	}
+
+	public void stop() {
+		Optional<Round> roundOptional = rounds.stream().filter(r -> r.isStarted()).findFirst();
+
+		if (roundOptional.isPresent())
+			roundOptional.get().setStarted(false);
+
+		started = false;
+	}
+
+	private char raffleLetter() {
+		Random random = new Random();
+		char letterRaffled = 0;
+		do {
+			int randomNumber = random.nextInt(letters.length);
+			final char letter = letters[randomNumber];
+			Optional<Round> roundPlayed = rounds.stream().filter(l -> l.equals(letter)).findFirst();
+			if (roundPlayed.isEmpty()) {
+				letterRaffled = letter;
+			}
+		} while (letterRaffled == 0);
+
+		return letterRaffled;
 	}
 
 	public static Room create(int maxPlayer, char[] letters, int roundTime, int totalRounds,

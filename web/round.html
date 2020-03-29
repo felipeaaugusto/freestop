@@ -10,28 +10,78 @@
 <body>
     <div class="card">
         <h4 id="numberRoomText" class="card-header"></h5>
+        <h5 id="roundRoomText" class="card-header"></h5>
+        <h6 id="roundLetterText" class="card-header"></h6>
+        <h6 id="roundTimeLeftText" class="card-header"></h6>
+    </div>
+    <br>
+    <div class="col-md-12 text-center"> 
+        <form>
+            <div id="divResponse" class="col-sm-10">
+            </div>
+        </form>
+    </div><br>
+    <div class="col-md-12 text-center"> 
+        <button type="button" class="btn btn-success" onclick="stopRoundByClick()">Stop</button>
+    </div>
+
+    <!-- Modal Error Round-->
+    <div class="modal fade" id="errorRound" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Categorias Inválidas!</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                </div>
+                <div class="modal-body">
+                    <h6 id="roundCategoriesLeftText" class="card-header"></h6>
+                </div>
+            </div>
+        </div>
     </div>
 </body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 <script>
+    // global variables
+    // define here
+    var IP = "http://192.168.0.36:8080";
+    var ROUND_STARTED = {}
+    var ROOM_CATEGORIES = {};
+    var ROUND_LETTER = {};
+    var CATEGORIES = [
+        {name: "Nome", value: "name"},
+        {name: "Carro", value: "car"},
+        {name: "Cor", value: "color"},
+        {name: "Palavra em Inglês", value: "word_english"},
+        {name: "Banda", value: "band"},
+        {name: "Time Esportivo", value: "team_sport"},
+        {name: "Comida", value: "food"}
+    ]
+
     // request to get room
     function getRoom()
     {
         var numberRoom = localStorage.getItem("roomNumber");
-        $.get("http://127.0.0.1:8080/room/" + numberRoom, function(data, status){
+        $.get(IP + "/room/" + numberRoom, function(data, status){
             $('#numberRoomText').text("Sala: " + data.number);
-            checkPlayerInRoom(data);
+            $('#roundRoomText').text("Rodada: " + data.rounds.length);
+            checkPlayerInRoom(data.players);
+            setTimeRound(data.rounds);
+            redirectRoomPage(data.started);
+            createInputCategories(data);
         }).fail(function() {
             window.location.pathname = "/";
         });
     }
 
     // verify if player in room
-    function checkPlayerInRoom(data)
+    function checkPlayerInRoom(players)
     {
-        var PLAYERS = data.players;
+        var PLAYERS = players;
         var userExist = false;
         PLAYERS.forEach(function(player){
             if (player.number == localStorage.getItem("playerNumber"))
@@ -46,6 +96,116 @@
             window.location.pathname = "/";
         }
     }
+
+    function setTimeRound(rounds)
+    {
+        rounds.forEach(function(round){
+            if (round.started)
+            {
+                ROUND_LETTER = round.letter;
+                $('#roundLetterText').text("Letra: " + ROUND_LETTER);
+                ROUND_STARTED = round;
+            }
+        });
+        if (ROUND_STARTED == undefined)
+        {
+            window.location.href = "room.html";
+        }
+    }
+
+    function stopRoundByClick()
+    {
+        var missingCategories = [];
+        ROOM_CATEGORIES.forEach(function(category){
+            var val = $("#" + category.value).val();
+            if (val == "" || val.charAt(0).toUpperCase() != ROUND_LETTER)
+            {
+                missingCategories.push(category.value)
+            }
+        });
+
+        if (missingCategories.length > 0)
+        {
+            $('#roundCategoriesLeftText').text("");
+            CATEGORIES.forEach(function(cat){
+                missingCategories.forEach(function(errorCat){
+                    if (cat.value == errorCat){
+                        $('#roundCategoriesLeftText').append(cat.name + "<br><br>");
+                    }
+                })
+            });
+            $('#errorRound').modal('show');
+        } else {
+            postToStopRound();
+        }
+    }
+
+    function stopRoundByTime(dtNow, dtFinish)
+    {
+        if (dtNow.getTime() > dtFinish.getTime())
+        {
+            postToStopRound();
+        }
+    }
+
+    function postToStopRound()
+    {
+        var roomNumber = localStorage.getItem("roomNumber")
+        $.ajax({
+            url: IP + '/room/'+ roomNumber +'/stop', 
+            type: 'post',
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (data) {
+                redirectRoomPage(data.started);
+            }
+        });
+    }
+
+    function redirectRoomPage(started)
+    {
+        if(!started)
+        {
+            window.location.href = "room.html";
+            localStorage.setItem("roundFinished", true);
+        }
+    }
+
+    function createInputCategories(room)
+    {
+        ROOM_CATEGORIES = room.categories;
+        ROOM_CATEGORIES.forEach(function(catRoom){
+            CATEGORIES.forEach(function(cat){
+                if (catRoom.value == cat.value) {
+                    $('<label>').attr({
+                        for: cat.value,
+                        id: "label_" + cat.value,
+                        class: "col-sm-2"
+                    }).appendTo('#divResponse');
+                    $("#label_" + cat.value).append(cat.name);
+                    $('<input>').attr({
+                        id: cat.value,
+                        name: cat.value,
+                        value: '',
+                        class: "col-sm-10"
+                    }).appendTo('#divResponse');
+                }
+            });
+        })
+    }
+
+    // refresh request each 1s
+    setInterval(function()
+    { 
+        $.get(IP + "/room/time", function(data, status){
+            var dateFinish = new Date(ROUND_STARTED.dateFinish);
+            var dateNow = new Date(data);
+            var diff = dateNow.getTime() - dateFinish.getTime();
+            var seconds = Math.abs(diff / 1000);
+            $('#roundTimeLeftText').text("Tempo restante: " + ~~seconds + "s");
+            stopRoundByTime(dateNow, dateFinish);
+        });
+    }, 1000);
 
     getRoom();
 </script>

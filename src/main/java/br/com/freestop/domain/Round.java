@@ -21,16 +21,16 @@ public class Round {
 
 	private char letter;
 
-	private Category category;
+	private boolean started;
 
-	public static Round create(int number, char letter, Category category, int roundTime) {
+	public static Round create(int number, char letter, int roundTime) {
 		Round newRound = new Round();
 
 		newRound.setDateStart(LocalDateTime.now());
 		newRound.setDateFinish(LocalDateTime.now().plusSeconds(roundTime));
 		newRound.setNumber(number);
-		newRound.setCategory(category);
 		newRound.setLetter(letter);
+		newRound.setStarted(true);
 
 		return newRound;
 	}

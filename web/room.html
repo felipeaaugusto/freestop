@@ -16,6 +16,7 @@
     <div class="card">
         <h4 id="numberRoomText" class="card-header"></h5>
         <h5 id="maxPlayersRoomText" class="card-header"></h5>
+        <h5 id="roundRoomText" class="card-header"></h5>
         <div class="card-body">
             <h5 class="card-title">Lista de Jogadores</h5>
             <table id="grid-players" class="table table-bordered table-hover display" width="100%"></table>
@@ -69,6 +70,27 @@
         </div>
     </div>
 
+    <!-- Modal Result Round -->
+    <div class="modal fade" id="resultRound" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Resultado da Rodada</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Resultado.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Sair</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 </body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.15/js/jquery.dataTables.js"></script>
@@ -77,6 +99,7 @@
 <script>
     // global variables
     // define here
+    var IP = "http://192.168.0.36:8080";
     var isAdmin = localStorage.getItem("roomAdmin") || false;
     var PLAYERS = {};
 
@@ -84,13 +107,14 @@
     function getRoom()
     {
         var numberRoom = localStorage.getItem("roomNumber");
-        $.get("http://127.0.0.1:8080/room/" + numberRoom, function(data, status){
+        $.get(IP +"/room/" + numberRoom, function(data, status){
             $('#numberRoomText').text("Sala: " + data.number);
             $('#maxPlayersRoomText').text("Número de jogadores: " + data.maxPlayer);
+            $('#roundRoomText').text(data.rounds == null ? "Próxima Rodada: " + 1 : "Próxima Rodada: " + data.rounds.length);
             fillTablePlayer(data.players);
             PLAYERS = data.players;
             canStart(data);
-            start(data);
+            start(data.started);
         }).fail(function() {
             window.location.pathname = "/";
         });
@@ -132,7 +156,7 @@
         var table = $("#grid-players").DataTable();
         table.clear().draw();
         getRoom();
-    }, 10000);
+    }, 5000);
 
     // create room
     $("#btn-create-player").click(function(){
@@ -144,7 +168,7 @@
         }
 
         $.ajax({
-            url: 'http://127.0.0.1:8080/room/'+ roomNumber +'/player',
+            url: IP + '/room/'+ roomNumber +'/player',
             type: 'post',
             dataType: 'json',
             contentType: 'application/json',
@@ -167,8 +191,11 @@
             dataSet.push([
                     data.name,
                     '<button type="button" \
+                        class="btn btn-dark disabled admin-' + !data.admin + '">Admin</button>',
+                    '<button type="button" \
                         class="btn btn-success admin-' + data.admin + ' admin-room-' + isAdmin + '" \
                         onclick="removePlayer(' +  data.number + ')">Remover</button>'
+
             ]);
         });
         var table = $("#grid-players").DataTable({
@@ -180,7 +207,13 @@
             data: dataSet,
             columns: [
                 { title: 'Nome' },
-                { title: 'Remover' }
+                { title: 'Admin' },
+                { title: 'Remover', visible : isAdmin}
+            ],
+            "columnDefs": [
+                { "width": "80%", "targets": 0 },
+                { "width": "10%", "targets": 1 },
+                { "width": "10%", "targets": 2 }
             ]
         });
     }
@@ -199,7 +232,7 @@
         {
             var roomNumber = localStorage.getItem("roomNumber")
             $.ajax({
-                url: 'http://127.0.0.1:8080/room/'+ roomNumber +'/player/' + player.number + '/remove', 
+                url: IP + '/room/'+ roomNumber +'/player/' + player.number + '/remove', 
                 type: 'post',
                 dataType: 'json',
                 contentType: 'application/json',
@@ -233,22 +266,23 @@
         var roomNumber = localStorage.getItem("roomNumber")
 
         $.ajax({
-            url: 'http://127.0.0.1:8080/room/'+ roomNumber +'/start', 
+            url: IP + '/room/'+ roomNumber +'/start', 
             type: 'post',
             dataType: 'json',
             contentType: 'application/json',
             success: function (data) {
-                start(data);
+                start(data.started);
             }
         });
     });
 
     // start round
-    function start(data)
+    function start(started)
     {
-        if (data.started)
+        if (started)
         {
             window.location.href = "round.html";
+            localStorage.setItem("roundFinished", false);
         }
     }
 
@@ -258,6 +292,10 @@
         $('#createPlayer').modal('show');
     } else {
         getRoom();
+        if (localStorage.getItem("roundFinished"))
+        {
+            $('#resultRound').modal('show');
+        }
     }
 </script>
 

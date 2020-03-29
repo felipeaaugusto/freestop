@@ -107,8 +107,17 @@
 <script type="text/javascript">
     // global variables
     // define here
+    var IP = "http://192.168.0.36:8080";
     var LETTERS = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
-    var CATEGORIES = ["Nome", "Carro", "Palavra em Inglês", "Banda", "Cor", "Time Esportivo", "Comida"]
+    var CATEGORIES = [
+        {name: "Nome", value: "name"},
+        {name: "Carro", value: "car"},
+        {name: "Cor", value: "color"},
+        {name: "Palavra em Inglês", value: "word_english"},
+        {name: "Banda", value: "band"},
+        {name: "Time Esportivo", value: "team_sport"},
+        {name: "Comida", value: "food"}
+    ]
 
     // refresh request each 10s
     setInterval(function()
@@ -169,7 +178,7 @@
         var categoriesObj = [];
         categories.forEach(function(category){
             categoriesObj.push({
-                name: category
+                value: category
             })
         });
 
@@ -182,7 +191,7 @@
         }
 
         $.ajax({
-            url: 'http://127.0.0.1:8080/room',
+            url: IP +'/room',
             type: 'post',
             dataType: 'json',
             contentType: 'application/json',
@@ -213,6 +222,7 @@
         {
             dataSet.push([
                 data.number,
+                data.players == null ? 0 : data.players.length,
                 data.maxPlayer
             ]);
         });
@@ -225,7 +235,8 @@
             data: dataSet,
             columns: [
                 { title: 'Número da sala' },
-                { title: 'Máximo jogadores' }
+                { title: 'Número de jogadores' },
+                { title: 'Máximo jogadores' },
             ]
         });
     }
@@ -233,7 +244,7 @@
     // request to get rooms list
     function getRooms()
     {
-        $.get("http://127.0.0.1:8080/room", function(data, status){
+        $.get(IP + "/room", function(data, status){
             fillTableRoom(data);
             addEventTableRoom();
         }).fail(function() {
@@ -251,7 +262,7 @@
         if (isAdmin)
         {
             $.ajax({
-                url: 'http://127.0.0.1:8080/room/' + roomNumber + '/cancel',
+                url: IP +'/room/' + roomNumber + '/cancel',
                 type: 'post',
                 dataType: 'json',
                 contentType: 'application/json',
@@ -285,7 +296,7 @@
         });
 
         CATEGORIES.forEach(function(category){
-            $('#categories').append($('<option>').val(category).text(category).prop("selected", true))
+            $('#categories').append($('<option>').val(category.value).text(category.name).prop("selected", true))
         });
     }
 
@@ -294,6 +305,22 @@
         var url_string = window.location.href;
         var url = new URL(url_string);
         return url.searchParams.get("room");
+    }
+
+    // request to get room status
+    function checkStatusRoomSession()
+    {
+        var roomNumber = localStorage.getItem("roomNumber");
+        if (roomNumber != undefined)
+        {
+            $.get(IP + "/room/" + roomNumber + "/status", function(data, status){
+                if (!data)
+                {
+                    localStorage.clear();
+                    window.location.pathname = "/";
+                }
+            });
+        }
     }
 
     function initHome()
@@ -312,6 +339,8 @@
 
             // init combobox's to create room
             initCBCreateRoom();
+
+            checkStatusRoomSession();
         }
     }
 

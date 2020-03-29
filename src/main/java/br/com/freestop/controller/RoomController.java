@@ -1,5 +1,6 @@
 package br.com.freestop.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,6 +51,15 @@ public class RoomController {
 		return ResponseEntity.ok(room.get());
 	}
 
+	@RequestMapping(path = "{numberRoom}/status", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody ResponseEntity<Boolean> getStatusRoom(@PathVariable Long numberRoom) {
+		Optional<Room> room = roomService.list().stream().filter(r -> r.getNumber() == numberRoom).findFirst();
+		if (room.isEmpty())
+			return ResponseEntity.ok(false);
+		return ResponseEntity.ok(true);
+	}
+
 	@RequestMapping(path = "{numberRoom}/start", method = RequestMethod.POST, produces = { "application/json" })
 	public @ResponseBody ResponseEntity<Room> start(@PathVariable Long numberRoom) {
 		Optional<Room> roomOptional = roomService.list().stream().filter(r -> r.getNumber() == numberRoom).findFirst();
@@ -57,7 +67,22 @@ public class RoomController {
 			return ResponseEntity.notFound().build();
 
 		Room room = roomOptional.get();
-		room.start();
+
+		if (!room.isStarted())
+			room.start();
+		return ResponseEntity.ok(room);
+	}
+
+	@RequestMapping(path = "{numberRoom}/stop", method = RequestMethod.POST, produces = { "application/json" })
+	public @ResponseBody ResponseEntity<Room> stop(@PathVariable Long numberRoom) {
+		Optional<Room> roomOptional = roomService.list().stream().filter(r -> r.getNumber() == numberRoom).findFirst();
+		if (roomOptional.isEmpty())
+			return ResponseEntity.notFound().build();
+
+		Room room = roomOptional.get();
+
+		if (room.isStarted())
+			room.stop();
 		return ResponseEntity.ok(room);
 	}
 
@@ -100,6 +125,12 @@ public class RoomController {
 		Player player = optionalPlayer.get();
 		room.removePlayer(player);
 		return ResponseEntity.ok(player);
+	}
+
+	@RequestMapping(path = "time", method = RequestMethod.GET, produces = { "application/json" })
+	@ResponseStatus(HttpStatus.OK)
+	public @ResponseBody ResponseEntity<LocalDateTime> getTime() {
+		return ResponseEntity.ok(LocalDateTime.now());
 	}
 
 }

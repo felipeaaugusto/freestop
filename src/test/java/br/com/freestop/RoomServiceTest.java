@@ -18,8 +18,30 @@ public class RoomServiceTest {
 	public void create_game_success() {
 		List<Category> categories = new ArrayList<>();
 
-		categories.add(new Category("Teste 1", true));
-		categories.add(new Category("Teste 2", true));
+		categories.add(new Category("test_1"));
+		categories.add(new Category("test_1"));
+
+		Room room = Room.create(2, new char[] { 'A', 'B' }, 60, 5, categories);
+
+		RoomService roomService = new RoomService();
+
+		Player player1 = new Player("Felipe Test", true, 1);
+		Player player2 = new Player("Felipe Test2", false, 2);
+
+		room.addPlayer(player1);
+		room.addPlayer(player2);
+
+		roomService.create(room);
+
+		assertEquals(false, room.isStarted());
+	}
+
+	@Test
+	public void start_game_success() {
+		List<Category> categories = new ArrayList<>();
+
+		categories.add(new Category("test_1"));
+		categories.add(new Category("test_1"));
 
 		Room room = Room.create(2, new char[] { 'A', 'B' }, 60, 5, categories);
 
@@ -35,6 +57,7 @@ public class RoomServiceTest {
 		room.start();
 
 		assertEquals(true, room.isStarted());
+		assertEquals(1, room.getRounds().size());
 	}
 
 }
