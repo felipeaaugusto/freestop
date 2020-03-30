@@ -1,5 +1,7 @@
 package br.com.freestop.domain;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,13 +11,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Category {
+public class Result {
 
-	private String value;
+	private Player player;
 
-	private String word;
+	private List<Category> categories;
 
-	public Category(String value) {
-		this.value = value;
-	}
+	private int score;
 }

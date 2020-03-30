@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import br.com.freestop.domain.Player;
+import br.com.freestop.domain.Result;
 import br.com.freestop.domain.Room;
 import br.com.freestop.service.RoomService;
 
@@ -73,16 +74,24 @@ public class RoomController {
 		return ResponseEntity.ok(room);
 	}
 
-	@RequestMapping(path = "{numberRoom}/stop", method = RequestMethod.POST, produces = { "application/json" })
-	public @ResponseBody ResponseEntity<Room> stop(@PathVariable Long numberRoom) {
+	@RequestMapping(path = "{numberRoom}/stop/{numberPlayer}", method = RequestMethod.POST, produces = {
+			"application/json" })
+	public @ResponseBody ResponseEntity<Room> stop(@PathVariable Long numberRoom, @PathVariable Long numberPlayer,
+			@RequestBody Result result) {
 		Optional<Room> roomOptional = roomService.list().stream().filter(r -> r.getNumber() == numberRoom).findFirst();
 		if (roomOptional.isEmpty())
 			return ResponseEntity.notFound().build();
 
 		Room room = roomOptional.get();
 
-		if (room.isStarted())
-			room.stop();
+		Optional<Player> optionalPlayer = room.getPlayers().stream().filter(p -> p.getNumber() == numberPlayer)
+				.findFirst();
+		if (optionalPlayer.isEmpty())
+			return ResponseEntity.notFound().build();
+
+		Player player = optionalPlayer.get();
+
+		room.stop(result, player);
 		return ResponseEntity.ok(room);
 	}
 

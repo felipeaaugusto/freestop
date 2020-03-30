@@ -21,7 +21,7 @@
             <h5 class="card-title">Lista de Jogadores</h5>
             <table id="grid-players" class="table table-bordered table-hover display" width="100%"></table>
             <br>
-            <button id="btn-start-room" class="btn btn-primary">Iniciar</button>
+            <button id="btn-start-room" class="btn btn-primary" disabled>Iniciar</button>
             <button id="btn-link-room" class="btn btn-warning">Gerar Link</button>
         </div>
     </div>
@@ -75,13 +75,13 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Resultado da Rodada</h5>
+                    <h5 id="numberRoundModalResultText" class="modal-title"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
-                    Resultado.
+                <div id="areaResult" class="modal-body">
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Sair</button>
@@ -96,207 +96,6 @@
 <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.15/js/jquery.dataTables.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-<script>
-    // global variables
-    // define here
-    var IP = "http://192.168.0.36:8080";
-    var isAdmin = localStorage.getItem("roomAdmin") || false;
-    var PLAYERS = {};
-
-    // request to get room
-    function getRoom()
-    {
-        var numberRoom = localStorage.getItem("roomNumber");
-        $.get(IP +"/room/" + numberRoom, function(data, status){
-            $('#numberRoomText').text("Sala: " + data.number);
-            $('#maxPlayersRoomText').text("Número de jogadores: " + data.maxPlayer);
-            $('#roundRoomText').text(data.rounds == null ? "Próxima Rodada: " + 1 : "Próxima Rodada: " + data.rounds.length);
-            fillTablePlayer(data.players);
-            PLAYERS = data.players;
-            canStart(data);
-            start(data.started);
-        }).fail(function() {
-            window.location.pathname = "/";
-        });
-    }
-
-    // verify if start button is begin to ready
-    function canStart(data)
-    {
-        if (data.maxPlayer <= data.players.length)
-        {
-            $('#btn-start-room').prop('disabled', false);
-        } else {
-            $('#btn-start-room').prop('disabled', true);
-        }
-        checkPlayerInRoom();
-    }
-
-    // verify if player in room
-    function checkPlayerInRoom()
-    {
-        var userExist = false;
-        PLAYERS.forEach(function(player){
-            if (player.number == localStorage.getItem("playerNumber"))
-            {
-                userExist = true;
-            }
-        });
-
-        if (!userExist)
-        {
-            localStorage.clear();
-            window.location.pathname = "/";
-        }
-    }
-
-    // refresh request each 10s
-    setInterval(function()
-    { 
-        var table = $("#grid-players").DataTable();
-        table.clear().draw();
-        getRoom();
-    }, 5000);
-
-    // create room
-    $("#btn-create-player").click(function(){
-        var roomNumber = localStorage.getItem("roomNumber")
-
-        var player = {
-            name: $("#namePlayer").val(),
-            admin: localStorage.getItem("roomAdmin")
-        }
-
-        $.ajax({
-            url: IP + '/room/'+ roomNumber +'/player',
-            type: 'post',
-            dataType: 'json',
-            contentType: 'application/json',
-            data: JSON.stringify(player),
-            success: function (data) {
-                localStorage.setItem("playerNumber", data.number);
-                localStorage.setItem("playerName", data.name);
-                $('#createPlayer').modal('hide');
-                getRoom();        
-            }
-        });
-    });
-
-    // fill table player
-    function fillTablePlayer(result)
-    {
-        var dataSet = [];
-        result.forEach(function(data)
-        {
-            dataSet.push([
-                    data.name,
-                    '<button type="button" \
-                        class="btn btn-dark disabled admin-' + !data.admin + '">Admin</button>',
-                    '<button type="button" \
-                        class="btn btn-success admin-' + data.admin + ' admin-room-' + isAdmin + '" \
-                        onclick="removePlayer(' +  data.number + ')">Remover</button>'
-
-            ]);
-        });
-        var table = $("#grid-players").DataTable({
-            destroy: true,
-            searching: false, 
-            paging: false, 
-            info: false,
-            responsive: true,
-            data: dataSet,
-            columns: [
-                { title: 'Nome' },
-                { title: 'Admin' },
-                { title: 'Remover', visible : isAdmin}
-            ],
-            "columnDefs": [
-                { "width": "80%", "targets": 0 },
-                { "width": "10%", "targets": 1 },
-                { "width": "10%", "targets": 2 }
-            ]
-        });
-    }
-
-    function removePlayer(numberPlayer)
-    {
-        var player = {};
-        PLAYERS.forEach(function(p){
-            if (p.number == numberPlayer)
-            {
-                player = p;
-            }
-        });
-
-        if (!player.admin || localStorage.getItem("playerNumber") != numberPlayer)
-        {
-            var roomNumber = localStorage.getItem("roomNumber")
-            $.ajax({
-                url: IP + '/room/'+ roomNumber +'/player/' + player.number + '/remove', 
-                type: 'post',
-                dataType: 'json',
-                contentType: 'application/json',
-                success: function (data) {
-                    getRoom();        
-                }
-            });
-        }
-    }
-
-    // event click to generate link
-    $("#btn-link-room").click(function()
-    {
-        $('#linkRoom').modal('show');
-        var roomNumber = localStorage.getItem("roomNumber")
-        $("#textLinkRoom").val(window.location.origin + "?room=" + roomNumber);
-    });
-
-    // event click to copy link
-    $("#btn-copy-link-room").click(function(){
-        var copyText = document.getElementById("textLinkRoom");
-        copyText.select();
-        copyText.setSelectionRange(0, 99999)
-        document.execCommand("copy");
-        $('#linkRoom').modal('hide');
-    });
-
-    // event click to start round
-    $("#btn-start-room").click(function()
-    {
-        var roomNumber = localStorage.getItem("roomNumber")
-
-        $.ajax({
-            url: IP + '/room/'+ roomNumber +'/start', 
-            type: 'post',
-            dataType: 'json',
-            contentType: 'application/json',
-            success: function (data) {
-                start(data.started);
-            }
-        });
-    });
-
-    // start round
-    function start(started)
-    {
-        if (started)
-        {
-            window.location.href = "round.html";
-            localStorage.setItem("roundFinished", false);
-        }
-    }
-
-    // show modal player
-    if (localStorage.getItem("playerNumber") == null)
-    {
-        $('#createPlayer').modal('show');
-    } else {
-        getRoom();
-        if (localStorage.getItem("roundFinished"))
-        {
-            $('#resultRound').modal('show');
-        }
-    }
-</script>
-
+<script src="main.js"></script>
+<script src="room.js"></script>
 </html>

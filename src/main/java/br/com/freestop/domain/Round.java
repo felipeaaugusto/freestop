@@ -1,6 +1,7 @@
 package br.com.freestop.domain;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,6 +23,10 @@ public class Round {
 	private char letter;
 
 	private boolean started;
+	
+	private boolean calculated;
+
+	private List<Result> results;
 
 	public static Round create(int number, char letter, int roundTime) {
 		Round newRound = new Round();

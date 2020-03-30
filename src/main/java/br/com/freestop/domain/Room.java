@@ -69,11 +69,19 @@ public class Room {
 		started = true;
 	}
 
-	public void stop() {
-		Optional<Round> roundOptional = rounds.stream().filter(r -> r.isStarted()).findFirst();
+	public void stop(Result result, Player player) {
+		Optional<Round> roundOptional = rounds.stream().filter(r -> !r.isCalculated()).findFirst();
 
-		if (roundOptional.isPresent())
-			roundOptional.get().setStarted(false);
+		result.setPlayer(player);
+
+		if (roundOptional.isPresent()) {
+			Round round = roundOptional.get();
+			if (Objects.isNull(round.getResults()))
+				round.setResults(new ArrayList<>());
+			round.getResults().add(result);
+			if (players.size() == round.getResults().size())
+				round.setStarted(false);
+		}
 
 		started = false;
 	}
