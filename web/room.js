@@ -16,7 +16,8 @@ function getRoom()
         PLAYERS = room.players;
         canStart(room);
         start(room.started);
-        showResult(room)
+        showResult(room);
+        activeInterval();
     }).fail(function() {
         window.location.pathname = "/";
     });
@@ -53,19 +54,22 @@ function checkPlayerInRoom()
 }
 
 // refresh request each 10s
-setInterval(function()
-{ 
-    var table = $("#grid-players").DataTable();
-    table.clear().draw();
-    getRoom();
-}, 5000);
+function activeInterval()
+{
+    setInterval(function()
+    { 
+        var table = $("#grid-players").DataTable();
+        table.clear().draw();
+        getRoom();
+    }, 5000);
+}
 
 // create room
 $("#btn-create-player").click(function(){
     var roomNumber = localStorage.getItem("roomNumber")
-
+    var playerName = $("#namePlayer").val();
     var player = {
-        name: $("#namePlayer").val(),
+        name: playerName == "" ? null : playerName,
         admin: localStorage.getItem("roomAdmin")
     }
 
@@ -80,6 +84,16 @@ $("#btn-create-player").click(function(){
             localStorage.setItem("playerName", data.name);
             $('#createPlayer').modal('hide');
             getRoom();        
+        },
+        error: function(xhr) {
+            if (xhr.status == 400)
+            {
+                $('#errorDivCreatePlayer').removeClass('d-none'); 
+                $('#errorTextCreatePlayer').text("AVISO! " + xhr.responseJSON.message);
+            } else {
+                localStorage.clear();
+                window.location.pathname = "/";
+            }
         }
     });
 });
@@ -221,7 +235,7 @@ function showResult(room)
 // show modal player
 if (localStorage.getItem("playerNumber") == null)
 {
-    $('#createPlayer').modal('show');
+    $('#createPlayer').modal({backdrop: 'static', keyboard: false})
 } else {
     getRoom();
     if (localStorage.getItem("roundFinished"))

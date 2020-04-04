@@ -1,8 +1,11 @@
 // refresh request each 10s
-setInterval(function()
-{ 
-    reloadTableRoom();
-}, 10000);
+function activeInterval()
+{
+    setInterval(function()
+    { 
+        reloadTableRoom();
+    }, 10000);
+}
 
 // reload rooms in table
 function reloadTableRoom()
@@ -131,6 +134,7 @@ function getRooms()
     $.get(IP + "/room", function(data, status){
         fillTableRoom(data);
         addEventTableRoom();
+        activeInterval();
     }).fail(function() {
         $('#errorRoom').modal({backdrop: 'static', keyboard: false})
         $('#cancelRoom').modal('hide');

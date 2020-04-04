@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 
+import br.com.freestop.exception.BadRequestException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -37,11 +38,13 @@ public class Room {
 
 	public void addPlayer(Player player) {
 		if (isStarted())
-			throw new RuntimeException("It is no longer allowed to add players to this game.");
+			throw new BadRequestException("Não é permitido adicionar mais jogadores nessa sala.");
+		if (Objects.isNull(player.getName()))
+			throw new BadRequestException("Por favor, digite o nome do jogador.");
 		if (Objects.isNull(players))
 			players = new ArrayList<>();
 		if (players.size() >= maxPlayer)
-			throw new RuntimeException(String.format("Maximum number of players %s allowed!", maxPlayer));
+			throw new BadRequestException(String.format("Máximo %s de jogadores permitido!", maxPlayer));
 
 		Random random = new Random();
 		player.setNumber(random.nextInt(100000));
@@ -54,11 +57,11 @@ public class Room {
 
 	public void start() {
 		if (maxPlayer != players.size())
-			throw new RuntimeException("Minimum players not reached");
+			throw new BadRequestException("Mínimo de jogadores não atingido.");
 		if (categories.size() < 2)
-			throw new RuntimeException("There are no categories created.");
+			throw new BadRequestException("Não existem categorias criadas.");
 		if (letters.length < 2)
-			throw new RuntimeException("There are no letters created.");
+			throw new BadRequestException("Não existem letras criadas");
 
 		if (Objects.isNull(rounds))
 			rounds = new ArrayList<>();
@@ -106,15 +109,15 @@ public class Room {
 		Room newRoom = new Room();
 
 		if (maxPlayer <= 1)
-			throw new RuntimeException("Minimum number of players is 2!");
+			throw new BadRequestException("Mínimo número de jogadores é 2!");
 		if (roundTime < 60)
-			throw new RuntimeException("Minimum number of round time is 60!");
+			throw new BadRequestException("Mínimo quantidade de segundos para cada rodada é 60!");
 		if (totalRounds < 3)
-			throw new RuntimeException("Minimum number of rounds is 3!");
+			throw new BadRequestException("Mínimo número de rodadas é 3!");
 		if (letters.length < 2)
-			throw new RuntimeException("Minimum number of letters is 2!");
+			throw new BadRequestException("Mínimo número de letras é 2!");
 		if (categories.size() < 2)
-			throw new RuntimeException("Minimum number of categories is 2!");
+			throw new BadRequestException("Mínimo número de categorias é 2!");
 
 		Random random = new Random();
 
