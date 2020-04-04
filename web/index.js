@@ -1,3 +1,5 @@
+var FIRST_LOAD = true;
+
 // refresh request each 10s
 function activeInterval()
 {
@@ -26,10 +28,14 @@ function addEventTableRoom()
             $('#btn-go-room').hide();
         }
         else{
-            table.$('tr.selected').removeClass('selected');
-            $(this).addClass('selected');
-            localStorage.setItem("roomNumber", Number($(this).find("td").eq(0).html()));
-            $('#btn-go-room').show();
+            var idRoom = Number($(this).find("td").eq(0).html());
+            if (!isNaN(idRoom))
+            {
+                localStorage.setItem("roomNumber", idRoom);
+                table.$('tr.selected').removeClass('selected');
+                $(this).addClass('selected');
+                $('#btn-go-room').show();
+            }
         }
     });
 };
@@ -133,8 +139,12 @@ function getRooms()
 {
     $.get(IP + "/room", function(data, status){
         fillTableRoom(data);
-        addEventTableRoom();
-        activeInterval();
+        if (FIRST_LOAD)
+        {
+            addEventTableRoom();
+            activeInterval();
+        }
+        FIRST_LOAD = false;
     }).fail(function() {
         $('#errorRoom').modal({backdrop: 'static', keyboard: false})
         $('#cancelRoom').modal('hide');

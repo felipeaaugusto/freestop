@@ -6,9 +6,19 @@
     <title>Room</title>
     <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.15/css/jquery.dataTables.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
         .admin-true, .admin-room-false {
             display: none;
+        }
+        .padding-top {
+            padding-top: 20px;
+        }
+        .padding-right {
+            padding-right: 20px;
+        }
+        .half-padding-bottom {
+            padding-bottom: 10px;
         }
     </style>
 </head>
@@ -80,17 +90,23 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div id="areaResult" class="modal-body">
-
+                <div class="modal-body container">
+                    <div id="areaResult" class="row">
+                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Sair</button>
+                    <button type="button" class="btn btn-primary" onclick="processResult()" data-dismiss="modal">Finalizar</button>
                 </div>
             </div>
         </div>
     </div>
 
-
+    <!-- Modal Loading Result Round -->
+    <div class="modal fade" id="resultLoading" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered justify-content-center" role="document">
+            <span class="fa fa-spinner fa-spin fa-3x"></span>
+        </div>
+    </div>
 </body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.15/js/jquery.dataTables.js"></script>

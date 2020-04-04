@@ -1,7 +1,10 @@
 package br.com.freestop.domain;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,10 +26,12 @@ public class Round {
 	private char letter;
 
 	private boolean started;
-	
+
 	private boolean calculated;
 
 	private List<Result> results;
+
+	private List<Player> playerFixes;
 
 	public static Round create(int number, char letter, int roundTime) {
 		Round newRound = new Round();
@@ -38,6 +43,15 @@ public class Round {
 		newRound.setStarted(true);
 
 		return newRound;
+	}
+
+	public void addPlayerFixes(Player player) {
+		if (Objects.isNull(playerFixes))
+			playerFixes = new ArrayList<>();
+		Optional<Player> playerOptional = playerFixes.stream().filter(p -> p.getNumber() == player.getNumber())
+				.findFirst();
+		if (playerOptional.isEmpty())
+			playerFixes.add(player);
 	}
 
 }

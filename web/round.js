@@ -3,18 +3,29 @@
 var ROUND_STARTED = {}
 var ROOM_CATEGORIES = {};
 var ROUND_LETTER = {};
+var FIRST_LOAD = true;
 
 // request to get room
 function getRoom()
 {
     var numberRoom = localStorage.getItem("roomNumber");
-    $.get(IP + "/room/" + numberRoom, function(data, status){
+    $.get(IP + "/room/" + numberRoom, function(data){
+        if (!data.started && FIRST_LOAD)
+        {
+            window.location.pathname = "room.html";
+            return;
+        }
         $('#numberRoomText').text("Sala: " + data.number);
         $('#roundRoomText').text("Rodada: " + data.rounds.length);
         checkPlayerInRoom(data.players);
         setTimeRound(data.rounds);
         redirectRoomPage(data.started);
         createInputCategories(data);
+        if (FIRST_LOAD)
+        {
+            activeInterval();
+            FIRST_LOAD = false;
+        }
     }).fail(function() {
         window.location.pathname = "/";
     });
@@ -125,7 +136,7 @@ function redirectRoomPage(started)
     if(!started)
     {
         window.location.href = "room.html";
-        localStorage.setItem("roundFinished", true);
+        localStorage.setItem("roundProcessed", false);
     }
 }
 
@@ -153,23 +164,26 @@ function createInputCategories(room)
 }
 
 // refresh request each 1s
-setInterval(function()
-{ 
-    $.get(IP + "/room/time", function(data){
-        var dateFinish = new Date(ROUND_STARTED.dateFinish);
-        var dateNow = new Date(data);
-        var diff = dateNow.getTime() - dateFinish.getTime();
-        var seconds = Math.abs(diff / 1000);
-        $('#roundTimeLeftText').text("Tempo restante: " + ~~seconds + "s");
-        stopRoundByTime(dateNow, dateFinish);
-    });
-    var numberRoom = localStorage.getItem("roomNumber");
-    $.get(IP +"/room/" + numberRoom, function(room) {
-        if (!room.started)
-        {
-            postToStopRound();
-        }
-    });
-}, 1000);
+function activeInterval()
+{
+    setInterval(function()
+    { 
+        $.get(IP + "/room/time", function(data){
+            var dateFinish = new Date(ROUND_STARTED.dateFinish);
+            var dateNow = new Date(data);
+            var diff = dateNow.getTime() - dateFinish.getTime();
+            var seconds = Math.abs(diff / 1000);
+            $('#roundTimeLeftText').text("Tempo restante: " + ~~seconds + "s");
+            stopRoundByTime(dateNow, dateFinish);
+        });
+        var numberRoom = localStorage.getItem("roomNumber");
+        $.get(IP +"/room/" + numberRoom, function(room) {
+            if (!room.started)
+            {
+                postToStopRound();
+            }
+        });
+    }, 1000);
+};
 
 getRoom();

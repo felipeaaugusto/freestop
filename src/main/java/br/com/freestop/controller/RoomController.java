@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import br.com.freestop.domain.Correction;
 import br.com.freestop.domain.Player;
 import br.com.freestop.domain.Result;
 import br.com.freestop.domain.Room;
@@ -92,6 +93,34 @@ public class RoomController {
 		Player player = optionalPlayer.get();
 
 		room.stop(result, player);
+		return ResponseEntity.ok(room);
+	}
+
+	@RequestMapping(path = "{numberRoom}/result/{numberPlayer}", method = RequestMethod.POST, produces = {
+			"application/json" })
+	public @ResponseBody ResponseEntity<Room> result(@PathVariable Long numberRoom, @PathVariable Long numberPlayer,
+			@RequestBody Correction correction) {
+		Optional<Room> roomOptional = roomService.list().stream().filter(r -> r.getNumber() == numberRoom).findFirst();
+		if (roomOptional.isEmpty())
+			return ResponseEntity.notFound().build();
+
+		Room room = roomOptional.get();
+
+		Optional<Player> optionalPlayerFixed = room.getPlayers().stream()
+				.filter(p -> p.getNumber() == correction.getPlayer().getNumber()).findFirst();
+		if (optionalPlayerFixed.isEmpty())
+			return ResponseEntity.notFound().build();
+
+		Player playerFixed = optionalPlayerFixed.get();
+
+		Optional<Player> optionalPlayer = room.getPlayers().stream().filter(p -> p.getNumber() == numberPlayer)
+				.findFirst();
+		if (optionalPlayer.isEmpty())
+			return ResponseEntity.notFound().build();
+
+		Player player = optionalPlayer.get();
+
+		room.result(player, playerFixed, correction.getScore());
 		return ResponseEntity.ok(room);
 	}
 

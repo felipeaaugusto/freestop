@@ -3,6 +3,7 @@
 var isAdmin = localStorage.getItem("roomAdmin") || false;
 var PLAYERS = {};
 var FIRST_LOAD = true;
+var RESULTS = [];
 
 // request to get room
 function getRoom()
@@ -11,22 +12,40 @@ function getRoom()
     $.get(IP +"/room/" + numberRoom, function(room){
         $('#numberRoomText').text("Sala: " + room.number);
         $('#maxPlayersRoomText').text("Número de jogadores: " + room.maxPlayer);
-        $('#roundRoomText').text(room.rounds == null ? "Próxima Rodada: " + 1 : "Próxima Rodada: " + (room.rounds.length+1) );
-        fillTablePlayer(room.players);
+        $('#roundRoomText').text(room.rounds == null ? "Próxima Rodada: " + 1 + " (" + room.totalRounds + ")" : "Próxima Rodada: " + (room.rounds.length+1) + " (" + room.totalRounds + ")");
+        fillTablePlayer(room);
         PLAYERS = room.players;
         canStart(room);
         start(room.started);
-        showResult(room);
-        activeInterval();
+        if (FIRST_LOAD)
+        {
+            if (localStorage.getItem("roundProcessed") == "true")
+            {
+                activeInterval();
+            }
+            showResult(room);
+        }
+        FIRST_LOAD = false;
     }).fail(function() {
         window.location.pathname = "/";
     });
 }
 
 // verify if start button is begin to ready
-function canStart(data)
+function canStart(room)
 {
-    if (data.maxPlayer <= data.players.length && !localStorage.getItem("roundFinished"))
+    var roundStarted = [];
+    var rounds = 0;
+    if (room.rounds)
+    {
+        rounds = room.rounds.length;
+        roundStarted = room.rounds.filter(function(round){
+           return !round.calculated;
+        });
+
+    }
+
+    if (room.maxPlayer <= room.players.length && roundStarted.length == 0 && room.totalRounds >= rounds)
     {
         $('#btn-start-room').prop('disabled', false);
     } else {
@@ -82,8 +101,9 @@ $("#btn-create-player").click(function(){
         success: function (data) {
             localStorage.setItem("playerNumber", data.number);
             localStorage.setItem("playerName", data.name);
+            localStorage.setItem("roundProcessed", true);
             $('#createPlayer').modal('hide');
-            getRoom();        
+            getRoom();
         },
         error: function(xhr) {
             if (xhr.status == 400)
@@ -99,38 +119,62 @@ $("#btn-create-player").click(function(){
 });
 
 // fill table player
-function fillTablePlayer(result)
+function fillTablePlayer(room)
 {
     var dataSet = [];
-    result.forEach(function(data)
+    var players = room.players;
+    if (players)
     {
-        dataSet.push([
-            data.name,
-            '<button type="button" \
-                class="btn btn-dark disabled admin-' + !data.admin + '">Admin</button>',
-            '<button type="button" \
-                class="btn btn-success admin-' + data.admin + ' admin-room-' + isAdmin + '" \
-                onclick="removePlayer(' +  data.number + ')">Remover</button>'
-        ]);
-    });
-    var table = $("#grid-players").DataTable({
-        destroy: true,
-        searching: false, 
-        paging: false, 
-        info: false,
-        responsive: true,
-        data: dataSet,
-        columns: [
-            { title: 'Nome' },
-            { title: 'Admin' },
-            { title: 'Remover', visible : isAdmin}
-        ],
-        "columnDefs": [
-            { "width": "80%", "targets": 0 },
-            { "width": "10%", "targets": 1 },
-            { "width": "10%", "targets": 2 }
-        ]
-    });
+        players.forEach(function(data)
+        {
+            var totalScore = 0;
+            if(room.rounds)
+            {
+                var roundsProcessed = room.rounds.filter(function(round){
+                    return round.calculated;
+                });
+    
+                roundsProcessed.forEach(round => {
+                    var result = round.results.filter(function(result){
+                        return result.player.number == data.number
+                    });
+                    result.forEach(r => {
+                        totalScore += r.score;
+                    });
+                });
+            }
+
+            dataSet.push([
+                data.name,
+                totalScore,
+                '<button type="button" \
+                    class="btn btn-dark disabled admin-' + !data.admin + '">Admin</button>',
+                '<button type="button" \
+                    class="btn btn-success admin-' + data.admin + ' admin-room-' + isAdmin + '" \
+                    onclick="removePlayer(' +  data.number + ')">Remover</button>'
+            ]);
+        });
+        var table = $("#grid-players").DataTable({
+            destroy: true,
+            searching: false, 
+            paging: false, 
+            info: false,
+            responsive: true,
+            data: dataSet,
+            columns: [
+                { title: 'Nome' },
+                { title: 'Pontuação' },
+                { title: 'Admin' },
+                { title: 'Remover', visible : isAdmin},
+            ],
+            "columnDefs": [
+                { "width": "70%", "targets": 0 },
+                { "width": "10%", "targets": 1 },
+                { "width": "10%", "targets": 2 },
+                { "width": "10%", "targets": 3 }
+            ]
+        });
+    }
 }
 
 function removePlayer(numberPlayer)
@@ -151,7 +195,7 @@ function removePlayer(numberPlayer)
             type: 'post',
             dataType: 'json',
             contentType: 'application/json',
-            success: function (data) {
+            success: function () {
                 getRoom();        
             }
         });
@@ -197,39 +241,111 @@ function start(started)
     if (started)
     {
         window.location.href = "round.html";
-        localStorage.setItem("roundFinished", false);
+        localStorage.setItem("roundProcessed", false);
     }
 }
 
 function showResult(room)
 {
-    if (room.rounds && FIRST_LOAD)
+    var idPlayerSession = Number(localStorage.getItem("playerNumber"));
+    if (room.rounds)
     {
-        var rounds = room.rounds;
-        rounds.forEach(function(round){
+        var roundsFiltered = [];
+        roundsFiltered = room.rounds.filter(function(round)
+        {
+            return !round.calculated;
+        });
+        
+        roundsFiltered.forEach(function(round)
+        {
             $('#numberRoundModalResultText').text("Resultado da Rodada: " + round.number);
-            round.results.forEach(function(result)
+            RESULTS = round.results;
+            RESULTS.forEach(function(result)
             {
-                if (!round.calculed)
+                var player = result.player;
+                if (idPlayerSession != player.number)
                 {
-                    var player = result.player;
-                    $('<div id="' + 'player_id_' + player.number + '">' + player.name + '</div>').appendTo('#areaResult');
+                    $('<div id="' + 'player_id_' + player.number + '" class="col-sm-12 text-center padding-top half-padding-bottom">Jogador</div>').appendTo('#areaResult');
                     var categories = result.categories;
                     categories.forEach(function(catResult){
                         CATEGORIES.forEach(function(catDefault)
                         {
                             if (catDefault.value == catResult.value )
                             {
-                                $('<div id="' + '"player_id_"' + player.number + '_category_name_' + catResult.value + '">' + catDefault.name + " - "  + catResult.word + '</div>')
-                                    .appendTo('#player_id_' + player.number);
+                                $('<div id="player_id_' + player.number + '_' + catResult.value + '" class="col-sm-6">'
+                                        + catDefault.name + (catResult.word == "" ? "" : " - " + catResult.word) 
+                                    + '</div>').appendTo('#areaResult');
+                                // checkbox
+                                $('<div id="answer_player_id_' + player.number + '_' + catResult.value + '" class="col-sm-6"></div>').appendTo('#areaResult');
+                                createCheckBoxScore("answer_player_id_" + player.number + "_" + catResult.value, catResult.word == "" ? true : false);
                             }
                         });
-                    })
-                }
+                    });
+                };
             });
-        })
-        FIRST_LOAD = false;
+        });
+
+        if (roundsFiltered.length === 0)
+        {
+            setTimeout(() => {
+                $('#resultRound').modal('hide');
+                activeInterval();
+            }, 1000);
+        }
     }
+}
+
+function createCheckBoxScore(idElAnswer, isNull)
+{
+    var defaultValue = (isNull ? "checked" : "") + " " + (isNull ? "disabled" : "");
+    $('<input type="radio" id="' + idElAnswer + '_option_1" name="' + idElAnswer + '" value="true" checked ' + defaultValue + '>').appendTo('#' + idElAnswer);
+    $('<label for="' + idElAnswer + '_option_1" class="padding-right">SIM</label>').appendTo('#' + idElAnswer);
+    $('<input type="radio" id="' + idElAnswer + '_option_2" name="' + idElAnswer + '" value="false" ' + defaultValue + '>').appendTo('#' + idElAnswer);
+    $('<label for="' + idElAnswer + '_option_2">NÃO</label>').appendTo('#' + idElAnswer);
+}
+
+function processResult()
+{
+    localStorage.setItem("roundProcessed", true)
+
+    var roomNumber = localStorage.getItem("roomNumber");
+    var idPlayerSession = localStorage.getItem("playerNumber")
+    var correction = [];
+
+    RESULTS.forEach(result => {
+        var player = result.player;
+        if (idPlayerSession != player.number)
+        {
+            var categories = result.categories;
+            var answer = {};
+            categories.forEach(category => {
+                answer = $('input[name="answer_player_id_' + player.number + '_' + category.value + '"]:checked').val();
+                correction.push(answer);
+            });
+            var score = correction.filter(function(score){
+                return score == "true";
+            });
+            sendResult(roomNumber, idPlayerSession, player, score.length);
+        }
+    });
+    activeInterval();
+}
+
+function sendResult(roomNumber, playerNumber, playerFixed, score)
+{
+    var correction = {
+        player: playerFixed,
+        score: score * 10
+    }
+
+    $.ajax({
+        url: IP + '/room/' + roomNumber + '/result/' + playerNumber, 
+        type: 'post',
+        dataType: 'json',
+        contentType: 'application/json',
+        data: JSON.stringify(correction),
+        success: function () {}
+    });
 }
 
 // show modal player
@@ -237,11 +353,15 @@ if (localStorage.getItem("playerNumber") == null)
 {
     $('#createPlayer').modal({backdrop: 'static', keyboard: false})
 } else {
-    getRoom();
-    if (localStorage.getItem("roundFinished"))
+    if (localStorage.getItem("roundProcessed") == "false")
     {
-        setTimeout(() => {
-            $('#resultRound').modal('show');
+        $('#resultLoading').modal({backdrop: 'static', keyboard: false});
+        setTimeout(function () {
+            $('#resultRound').modal({backdrop: 'static', keyboard: false});
+            $('#resultLoading').modal('hide');
+            getRoom();
         }, 5000);
+    } else {
+        getRoom();
     }
 }

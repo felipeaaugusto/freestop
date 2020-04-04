@@ -89,6 +89,26 @@ public class Room {
 		started = false;
 	}
 
+	public void result(Player player, Player playerFixed, int scoreFixed) {
+		Optional<Round> roundOptional = rounds.stream().filter(r -> !r.isCalculated()).findFirst();
+
+		if (roundOptional.isPresent()) {
+			Round round = roundOptional.get();
+
+			Optional<Result> resultOptional = round.getResults().stream()
+					.filter(p -> p.getPlayer().getNumber() == playerFixed.getNumber()).findFirst();
+
+			if (resultOptional.isPresent()) {
+				Result result = resultOptional.get();
+				result.setScore(scoreFixed);
+			}
+
+			round.addPlayerFixes(player);
+			if (this.players.size() == round.getPlayerFixes().size())
+				round.setCalculated(true);
+		}
+	}
+
 	private char raffleLetter() {
 		Random random = new Random();
 		char letterRaffled = 0;

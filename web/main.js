@@ -7,7 +7,10 @@ var CATEGORIES = [
     {name: "Carro", value: "car"},
     {name: "Cor", value: "color"},
     {name: "Palavra em Inglês", value: "word_english"},
-    {name: "Banda", value: "band"},
+    {name: "Cantor/Banda", value: "band_singer"},
     {name: "Time Esportivo", value: "team_sport"},
-    {name: "Comida", value: "food"}
+    {name: "Comida", value: "food"},
+    {name: "Doença", value: "disease"},
+    {name: "Profissão", value: "profission"},
+    {name: "Série/Filme", value: "serie_movie"}
 ]
