@@ -89,18 +89,18 @@ public class Room {
 		started = false;
 	}
 
-	public void result(Player player, Player playerFixed, int scoreFixed) {
+	public void result(Player player, Correction correction) {
 		Optional<Round> roundOptional = rounds.stream().filter(r -> !r.isCalculated()).findFirst();
 
 		if (roundOptional.isPresent()) {
 			Round round = roundOptional.get();
 
 			Optional<Result> resultOptional = round.getResults().stream()
-					.filter(p -> p.getPlayer().getNumber() == playerFixed.getNumber()).findFirst();
+					.filter(p -> p.getPlayer().getNumber() == correction.getPlayer().getNumber()).findFirst();
 
 			if (resultOptional.isPresent()) {
 				Result result = resultOptional.get();
-				result.setScore(scoreFixed);
+//				result.setScore(correction.getScore());
 			}
 
 			round.addPlayerFixes(player);

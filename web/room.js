@@ -148,10 +148,10 @@ function fillTablePlayer(room)
                 data.name,
                 totalScore,
                 '<button type="button" \
-                    class="btn btn-dark disabled admin-' + !data.admin + '">Admin</button>',
-                '<button type="button" \
                     class="btn btn-success admin-' + data.admin + ' admin-room-' + isAdmin + '" \
-                    onclick="removePlayer(' +  data.number + ')">Remover</button>'
+                    onclick="removePlayer(' +  data.number + ')">Remover</button>',
+                '<button type="button" \
+                    class="btn btn-dark disabled admin-' + !data.admin + '">Admin</button>'
             ]);
         });
         var table = $("#grid-players").DataTable({
@@ -161,11 +161,12 @@ function fillTablePlayer(room)
             info: false,
             responsive: true,
             data: dataSet,
+            autoWidth: false,
             columns: [
                 { title: 'Nome' },
                 { title: 'Pontuação' },
-                { title: 'Admin' },
                 { title: 'Remover', visible : isAdmin},
+                { title: 'Admin' }
             ],
             "columnDefs": [
                 { "width": "70%", "targets": 0 },

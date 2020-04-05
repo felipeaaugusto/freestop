@@ -1,7 +1,5 @@
 package br.com.freestop.domain;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,9 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Correction {
+public class Checklist {
 
-	private Player player;
+	private Category category;
 
-	private List<Checklist> checklist;
+	private int score;
 }

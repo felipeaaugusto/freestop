@@ -113,6 +113,8 @@ public class RoomController {
 
 		Player playerFixed = optionalPlayerFixed.get();
 
+		correction.setPlayer(playerFixed);
+		
 		Optional<Player> optionalPlayer = room.getPlayers().stream().filter(p -> p.getNumber() == numberPlayer)
 				.findFirst();
 		if (optionalPlayer.isEmpty())
@@ -120,7 +122,7 @@ public class RoomController {
 
 		Player player = optionalPlayer.get();
 
-		room.result(player, playerFixed, correction.getScore());
+		room.result(player, correction);
 		return ResponseEntity.ok(room);
 	}
 
