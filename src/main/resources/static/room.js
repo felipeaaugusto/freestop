@@ -273,11 +273,16 @@ function showResult(room)
                         {
                             if (catDefault.value == catResult.value )
                             {
-                                $('<div id="player_id_' + player.number + '_' + catResult.value + '" class="col-sm-6">'
+                            	// row
+                            	$('<div id="row_player_id_' + player.number + '_' + catResult.value + '" class="row"></div>').insertAfter('#areaResult');
+                                // answer
+                            	$('<div id="player_id_' + player.number + '_' + catResult.value + '" class="col">'
                                         + catDefault.name + (catResult.word == "" ? "" : " - " + catResult.word) 
-                                    + '</div>').appendTo('#areaResult');
-                                // checkbox
-                                $('<div id="answer_player_id_' + player.number + '_' + catResult.value + '" class="col-sm-6"></div>').appendTo('#areaResult');
+                                    + '</div>').appendTo('#' + 'row_player_id_' + player.number + '_' + catResult.value);
+                            	// checkbox
+                                $('<div id="answer_player_id_' + player.number + '_' + catResult.value + '" class="col"></div>')
+                                	.appendTo('#' + 'row_player_id_' + player.number + '_' + catResult.value);
+                                
                                 createCheckBoxScore("answer_player_id_" + player.number + "_" + catResult.value, catResult.word == "" ? true : false);
                             }
                         });
@@ -309,38 +314,42 @@ function processResult()
 {
     localStorage.setItem("roundProcessed", true)
 
-    var roomNumber = localStorage.getItem("roomNumber");
+    var idRoom = localStorage.getItem("roomNumber");
     var idPlayerSession = localStorage.getItem("playerNumber")
-    var correction = [];
+    var correction = {
+    	approvals: []
+    };
 
     RESULTS.forEach(result => {
         var player = result.player;
+        // envia correção das respostas dos outros players
         if (idPlayerSession != player.number)
         {
             var categories = result.categories;
-            var answer = {};
+            var approvals = {
+            	player: player,
+        		checklist: []
+            };
             categories.forEach(category => {
-                answer = $('input[name="answer_player_id_' + player.number + '_' + category.value + '"]:checked').val();
-                correction.push(answer);
+            	var checklist = {
+                	valid: $('input[name="answer_player_id_' + player.number + '_' + category.value + '"]:checked').val() == "true" ? true : false,
+                	category: category
+                };
+            	approvals.checklist.push(checklist);
             });
-            var score = correction.filter(function(score){
-                return score == "true";
-            });
-            sendResult(roomNumber, idPlayerSession, player, score.length);
+            correction.approvals.push(approvals);
+        } else {
+        	
         }
     });
+    sendResult(idRoom, idPlayerSession, correction);
     activeInterval();
 }
 
-function sendResult(roomNumber, playerNumber, playerFixed, score)
+function sendResult(idRoom, idPlayerSession, correction)
 {
-    var correction = {
-        player: playerFixed,
-        score: score * 10
-    }
-
     $.ajax({
-        url: IP + '/room/' + roomNumber + '/result/' + playerNumber, 
+        url: IP + '/room/' + idRoom + '/result/' + idPlayerSession, 
         type: 'post',
         dataType: 'json',
         contentType: 'application/json',

@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Correction {
-	private List<Approval> approvals;
+public class Approval {
+	private Player player;
+
+	private List<Checklist> checklist;
 }

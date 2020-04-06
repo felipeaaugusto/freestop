@@ -13,5 +13,5 @@ public class Checklist {
 
 	private Category category;
 
-	private int score;
+	private boolean valid;
 }

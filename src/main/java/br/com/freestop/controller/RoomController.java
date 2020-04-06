@@ -106,15 +106,6 @@ public class RoomController {
 
 		Room room = roomOptional.get();
 
-		Optional<Player> optionalPlayerFixed = room.getPlayers().stream()
-				.filter(p -> p.getNumber() == correction.getPlayer().getNumber()).findFirst();
-		if (optionalPlayerFixed.isEmpty())
-			return ResponseEntity.notFound().build();
-
-		Player playerFixed = optionalPlayerFixed.get();
-
-		correction.setPlayer(playerFixed);
-		
 		Optional<Player> optionalPlayer = room.getPlayers().stream().filter(p -> p.getNumber() == numberPlayer)
 				.findFirst();
 		if (optionalPlayer.isEmpty())

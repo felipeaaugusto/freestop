@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import br.com.freestop.exception.BadRequestException;
 import lombok.AllArgsConstructor;
@@ -95,17 +96,21 @@ public class Room {
 		if (roundOptional.isPresent()) {
 			Round round = roundOptional.get();
 
-			Optional<Result> resultOptional = round.getResults().stream()
-					.filter(p -> p.getPlayer().getNumber() == correction.getPlayer().getNumber()).findFirst();
+			round.addCorrections(correction);
 
-			if (resultOptional.isPresent()) {
-				Result result = resultOptional.get();
-//				result.setScore(correction.getScore());
-			}
-
-			round.addPlayerFixes(player);
-			if (this.players.size() == round.getPlayerFixes().size())
+			if (this.players.size() == round.getCorrections().size()) {
 				round.setCalculated(true);
+				List<Result> results = round.getResults();
+				List<Correction> corrections = round.getCorrections();
+				// TODO melhorar isso
+				for (Result r : results) {
+					int score;
+					List<Approval> approvals = corrections.stream().flatMap(a -> a.getApprovals().stream())
+							.filter(a -> a.getPlayer().getNumber() == r.getPlayer().getNumber())
+							.collect(Collectors.toList());
+					// TODO acabar isso!!!!!
+				}
+			}
 		}
 	}
 

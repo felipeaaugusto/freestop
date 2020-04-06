@@ -1,0 +1,15 @@
+.admin-true, .admin-room-false {
+	display: none;
+}
+
+.padding-top {
+	padding-top: 20px;
+}
+
+.padding-right {
+	padding-right: 20px;
+}
+
+.half-padding-bottom {
+	padding-bottom: 10px;
+}
