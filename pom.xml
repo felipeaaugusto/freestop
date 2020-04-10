@@ -101,26 +101,18 @@
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.apache.tomcat.maven</groupId>
-				<artifactId>tomcat7-maven-plugin</artifactId>
-				<version>2.0</version>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>2.1.6.RELEASE</version>
 				<configuration>
 					<mainClass>br.com.freestop.FreestopApplication</mainClass>
 					<layout>JAR</layout>
 				</configuration>
 				<executions>
 					<execution>
-						<id>tomcat-run</id>
 						<goals>
-							<goal>exec-war-only</goal>
+							<goal>repackage</goal>
 						</goals>
-						<phase>package</phase>
-						<configuration>
-							<path>/</path>
-							<enableNaming>false</enableNaming>
-							<finalName>webapp.jar</finalName>
-							<charset>utf-8</charset>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
