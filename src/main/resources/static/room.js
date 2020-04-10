@@ -4,7 +4,7 @@ var isAdmin = localStorage.getItem("roomAdmin") || false;
 var PLAYERS = {};
 var FIRST_LOAD = true;
 var RESULTS = [];
-
+var LAST_RELOAD = 0; 
 // request to get room
 function getRoom()
 {
@@ -14,7 +14,8 @@ function getRoom()
         $('#maxPlayersRoomText').text("Número de jogadores: " + room.maxPlayer);
         $('#roundRoomText').text(room.rounds == null ? "Próxima Rodada: " + 1 + " (" + room.totalRounds + ")" : "Próxima Rodada: " + (room.rounds.length+1) + " (" + room.totalRounds + ")");
         fillTablePlayer(room);
-        PLAYERS = room.players;
+        PLAYERS = room.players || 0;
+        finished(room);
         canStart(room);
         start(room.started);
         if (FIRST_LOAD)
@@ -31,6 +32,78 @@ function getRoom()
     });
 }
 
+// verify if room is finished
+function finished(room)
+{
+    var roundStarted = [];
+    var rounds = 0;
+    if (room.rounds)
+    {
+        rounds = room.rounds.length;
+        roundStarted = room.rounds.filter(function(round){
+        	return !round.calculated;
+        });
+    }
+
+    
+    if (room.totalRounds == rounds && roundStarted.length == 0)
+    {
+    	$('#roomFinished').modal({backdrop: 'static', keyboard: false});
+    	var playerWinner = {
+    		name: "",
+    		totalScore: 0
+    	};
+    	room.players.forEach(function(player)
+        {
+            var totalScore = 0;
+            if(room.rounds)
+            {
+                var roundsProcessed = room.rounds.filter(function(round){
+                    return round.calculated;
+                });
+    
+                roundsProcessed.forEach(round => {
+                    var result = round.results.filter(function(result){
+                        return result.player.number == player.number
+                    });
+                    result.forEach(r => {
+                        totalScore += r.score;
+                    });
+                });
+                if (totalScore > playerWinner.totalScore)
+            	{
+                	playerWinner.name = player.name;
+                	playerWinner.totalScore = totalScore;
+            	}
+            }
+        });
+    	 $('#roomWinnerResultText').text("Ganhador: " + playerWinner.name + " - " + playerWinner.totalScore);
+    	 setTimeout(() => {
+    		 finishRoom()
+		}, 10000);
+    }
+}
+
+function finishRoom()
+{
+    var roomNumber = localStorage.getItem("roomNumber");
+
+    $.ajax({
+        url: IP +'/room/' + roomNumber + '/cancel',
+        type: 'post',
+        dataType: 'json',
+        contentType: 'application/json',
+        success: function (data) {
+        	localStorage.clear();
+        	window.location.pathname = "/";
+        },
+	    error: function(xhr) {
+	    	localStorage.clear();
+	    	window.location.pathname = "/";
+	    }
+    });
+}
+
 // verify if start button is begin to ready
 function canStart(room)
 {
@@ -42,10 +115,9 @@ function canStart(room)
         roundStarted = room.rounds.filter(function(round){
            return !round.calculated;
         });
-
     }
 
-    if (room.maxPlayer <= room.players.length && roundStarted.length == 0 && room.totalRounds >= rounds)
+    if (room.maxPlayer <= room.players.length && roundStarted.length == 0 && isAdmin == 'true' && room.totalRounds != rounds)
     {
         $('#btn-start-room').prop('disabled', false);
     } else {
@@ -77,10 +149,13 @@ function activeInterval()
 {
     setInterval(function()
     { 
-        var table = $("#grid-players").DataTable();
-        table.clear().draw();
+    	if (PLAYERS.length != LAST_RELOAD)
+    	{
+    		var table = $("#grid-players").DataTable();
+    		table.clear().draw();        	
+    	}
         getRoom();
-    }, 5000);
+    }, 2000);
 }
 
 // create room
@@ -123,7 +198,8 @@ function fillTablePlayer(room)
 {
     var dataSet = [];
     var players = room.players;
-    if (players)
+
+    if (players && PLAYERS.length != LAST_RELOAD)
     {
         players.forEach(function(data)
         {
@@ -175,6 +251,7 @@ function fillTablePlayer(room)
                 { "width": "10%", "targets": 3 }
             ]
         });
+        LAST_RELOAD = PLAYERS.length;
     }
 }
 
@@ -217,7 +294,9 @@ $("#btn-copy-link-room").click(function(){
     copyText.select();
     copyText.setSelectionRange(0, 99999)
     document.execCommand("copy");
-    $('#linkRoom').modal('hide');
+    setTimeout(() => {
+    	$('#linkRoom').modal('hide');		
+	}, 1000);
 });
 
 // event click to start round

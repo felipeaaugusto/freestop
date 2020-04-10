@@ -18,4 +18,8 @@ public class Result {
 	private List<Category> categories;
 
 	private int score;
+
+	public void addScore(int score) {
+		this.score += score;
+	}
 }

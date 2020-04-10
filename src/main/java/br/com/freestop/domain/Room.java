@@ -103,12 +103,29 @@ public class Room {
 				List<Result> results = round.getResults();
 				List<Correction> corrections = round.getCorrections();
 				// TODO melhorar isso
+				int correctionsSize = corrections.size() - 1;
 				for (Result r : results) {
-					int score;
-					List<Approval> approvals = corrections.stream().flatMap(a -> a.getApprovals().stream())
-							.filter(a -> a.getPlayer().getNumber() == r.getPlayer().getNumber())
-							.collect(Collectors.toList());
-					// TODO acabar isso!!!!!
+					for (Category category : r.getCategories()) {
+						int correctionsResult = 0;
+						for (Correction correctionTmp : corrections) {
+							// @formatter:off
+							List<Approval> approvals = correctionTmp.getApprovals().stream()
+									.filter(a -> a.getPlayer().getNumber() == r.getPlayer().getNumber())
+								.collect(Collectors.toList());
+							
+							List<Checklist> checklists = approvals.stream()
+									.flatMap(a -> a.getChecklist().stream())
+									.filter(a -> a.getCategory().getValue().equals(category.getValue()))
+								.collect(Collectors.toList());
+							
+							for (Checklist checklist : checklists) {
+								correctionsResult = checklist.isValid() ? correctionsResult + 1 : correctionsResult;
+							}
+							// @formatter:on
+						}
+						int score = (correctionsResult / correctionsSize) >= 0.5 ? 10 : 0;
+						r.addScore(score);
+					}
 				}
 			}
 		}

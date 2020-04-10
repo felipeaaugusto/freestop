@@ -13,3 +13,35 @@
 .half-padding-bottom {
 	padding-bottom: 10px;
 }
+
+.footer {
+    position:absolute;
+    bottom:0;
+	width:100%;
+	background-color: #1E68BF;
+	padding: 20px;
+	color: #cee4ff;
+}
+
+.navbar {
+	background-color: #d4e0e8;
+}
+
+.navbar-title {
+	width: 200px;
+    margin: 10px;
+    font-weight: 800;
+    background-color: #466a84;
+   	color: #cee4ff;
+}
+
+.navbar-brand {
+	color: #d0e6ff!important;
+	font-family: 'Impact, Charcoal, sans-serif'
+}
+
+.scrollable {
+	height: 100%;
+    min-height: 300px;
+    overflow-y: scroll;
+}  

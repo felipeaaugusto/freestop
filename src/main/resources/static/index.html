@@ -11,11 +11,21 @@
     <link rel="stylesheet" type="text/css" href="main.css">
 </head>
 <body>
-    <div class="col-md-12 text-center"> 
+	<nav class="navbar navbar-light">
+		<div class="navbar-title text-center">
+			<a class="navbar-brand" href="">FREESTOP</a>	
+		</div>	
+		<form class="form-inline">
+			<input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+			<button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>
+		</form>
+	</nav>
+	
+    <div class="col-md-12 text-center padding-top"> 
         <table id="grid-rooms" class="table table-bordered table-hover display" width="100%"></table>
         <br>
-        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#createRoom">Criar</button>
-        <button id="btn-go-room" type="button" class="btn btn-primary" style="display: none;">Entrar</button>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createRoom">Criar</button>
+        <button id="btn-go-room" type="button" class="btn btn-success" style="display: none;">Entrar</button>
     </div>
 
     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -99,6 +109,10 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="footer text-center">
+        © Copyright 2020 - Desenvolvido por <strong>Lipinho</strong>
     </div>
 </body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
