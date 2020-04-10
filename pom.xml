@@ -101,16 +101,28 @@
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.7.0</version>
+				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat7-maven-plugin</artifactId>
+				<version>2.0</version>
 				<configuration>
-					<fork>true</fork>
-					<executable>C:\Program Files\AdoptOpenJDK\jdk-11.0.6.10-hotspot\bin\javac</executable>
+					<mainClass>br.com.freestop.FreestopApplication</mainClass>
+					<layout>JAR</layout>
 				</configuration>
+				<executions>
+					<execution>
+						<id>tomcat-run</id>
+						<goals>
+							<goal>exec-war-only</goal>
+						</goals>
+						<phase>package</phase>
+						<configuration>
+							<path>/</path>
+							<enableNaming>false</enableNaming>
+							<finalName>webapp.jar</finalName>
+							<charset>utf-8</charset>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
