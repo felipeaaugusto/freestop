@@ -18,6 +18,10 @@ function getRoom()
 			$('#numberRoomText').text("Sala: " + room.number);
 			$('#maxPlayersRoomText').text("Número de jogadores: " + room.maxPlayer);
 			$('#roundRoomText').text(room.rounds == null ? "Próxima Rodada: " + 1 + " (" + room.totalRounds + ")" : "Próxima Rodada: " + (room.rounds.length+1) + " (" + room.totalRounds + ")");
+			if (LAST_RELOAD == undefined)
+			{
+				LAST_RELOAD = room.players.length || 0;
+			}
 			fillTablePlayer(room);
 			PLAYERS = room.players || 0;
 			finished(room);
@@ -276,6 +280,7 @@ function fillTablePlayer(room)
         });
         LAST_RELOAD = PLAYERS.length;
         ROUNDS_PROCESSED = roundProcessed.length;
+        $('#resultLoading').modal('hide');
     }
 }
 
@@ -415,6 +420,7 @@ function createCheckBoxScore(idElAnswer, isNull)
 
 function processResult()
 {
+	$('#resultLoading').modal({backdrop: 'static', keyboard: false});
     localStorage.setItem("roundProcessed", true)
 
     var idRoom = localStorage.getItem("roomNumber");
@@ -441,8 +447,6 @@ function processResult()
             	approvals.checklist.push(checklist);
             });
             correction.approvals.push(approvals);
-        } else {
-        	
         }
     });
     sendResult(idRoom, idPlayerSession, correction);

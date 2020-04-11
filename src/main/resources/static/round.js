@@ -96,7 +96,10 @@ function stopRoundByTime(dtNow, dtFinish)
 {
     if (dtNow.getTime() > dtFinish.getTime())
     {
-    	$('#stopBy').text("Stop por tempo!");
+        if ($('#stopBy')[0].innerText == "")
+    	{
+        	$('#stopBy').text("Stop por tempo!");
+    	}
         postToStopRound();
     }
 }
@@ -142,7 +145,7 @@ function redirectRoomPage(room)
             lastRound = room.rounds.filter(function(round){
             	return !round.calculated;
             });
-            if ($('#stopBy').val() == "")
+            if ($('#stopBy')[0].innerText == "")
         	{
             	$('#stopBy').text("Stop por " + lastRound[0].player.name);        	
         	}
@@ -151,7 +154,7 @@ function redirectRoomPage(room)
     	setTimeout(() => {
     		window.location.href = "room.html";
     		localStorage.setItem("roundProcessed", false);			
-		}, 10000);
+		}, 5000);
     }
 }
 
