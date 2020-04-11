@@ -32,6 +32,8 @@ public class Round {
 
 	private List<Correction> corrections;
 
+	private Player player;
+	
 	public static Round create(int number, char letter, int roundTime) {
 		Round newRound = new Round();
 
@@ -48,5 +50,11 @@ public class Round {
 		if (Objects.isNull(corrections))
 			corrections = new ArrayList<>();
 		corrections.add(correction);
+	}
+
+	public List<Correction> getCorrections() {
+		if (Objects.isNull(corrections))
+			corrections = new ArrayList<>();
+		return corrections;
 	}
 }

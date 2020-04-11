@@ -9,18 +9,18 @@ var FIRST_LOAD = true;
 function getRoom()
 {
     var numberRoom = localStorage.getItem("roomNumber");
-    $.get(IP + "/room/" + numberRoom, function(data){
-        if (!data.started && FIRST_LOAD)
+    $.get(IP + "/room/" + numberRoom, function(room){
+        if (!room.started && FIRST_LOAD)
         {
             window.location.pathname = "room.html";
             return;
         }
-        $('#numberRoomText').text("Sala: " + data.number);
-        $('#roundRoomText').text("Rodada: " + data.rounds.length);
-        checkPlayerInRoom(data.players);
-        setTimeRound(data.rounds);
-        redirectRoomPage(data.started);
-        createInputCategories(data);
+        $('#numberRoomText').text("Sala: " + room.number);
+        $('#roundRoomText').text("Rodada: " + room.rounds.length);
+        checkPlayerInRoom(room.players);
+        setTimeRound(room.rounds);
+        redirectRoomPage(room);
+        createInputCategories(room);
         if (FIRST_LOAD)
         {
             activeInterval();
@@ -96,6 +96,7 @@ function stopRoundByTime(dtNow, dtFinish)
 {
     if (dtNow.getTime() > dtFinish.getTime())
     {
+    	$('#stopBy').text("Stop por tempo!");
         postToStopRound();
     }
 }
@@ -125,18 +126,32 @@ function postToStopRound()
         dataType: 'json',
         contentType: 'application/json',
         data: JSON.stringify(result),
-        success: function (data) {
-            redirectRoomPage(data.started);
+        success: function (room) {
+            redirectRoomPage(room);
         }
     });
 }
 
-function redirectRoomPage(started)
+function redirectRoomPage(room)
 {
-    if(!started)
+    if(!room.started)
     {
-        window.location.href = "room.html";
-        localStorage.setItem("roundProcessed", false);
+        if (room.rounds)
+        {
+            rounds = room.rounds.length;
+            lastRound = room.rounds.filter(function(round){
+            	return !round.calculated;
+            });
+            if ($('#stopBy').val() == "")
+        	{
+            	$('#stopBy').text("Stop por " + lastRound[0].player.name);        	
+        	}
+        }
+    	$('#stopRound').modal({backdrop: 'static', keyboard: false});
+    	setTimeout(() => {
+    		window.location.href = "room.html";
+    		localStorage.setItem("roundProcessed", false);			
+		}, 10000);
     }
 }
 

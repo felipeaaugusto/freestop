@@ -13,4 +13,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Correction {
 	private List<Approval> approvals;
+
+	private Player player;
 }

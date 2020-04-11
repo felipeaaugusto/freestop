@@ -80,9 +80,22 @@ public class Room {
 
 		if (roundOptional.isPresent()) {
 			Round round = roundOptional.get();
+
+			if (Objects.isNull(round.getPlayer()))
+				round.setPlayer(player);
+
 			if (Objects.isNull(round.getResults()))
 				round.setResults(new ArrayList<>());
-			round.getResults().add(result);
+
+			// @formatter:off
+			List<Result> results = round.getResults().stream()
+					.filter(r -> r.getPlayer().getNumber() == player.getNumber())
+				.collect(Collectors.toList());
+			// @formatter:on
+
+			if (results.isEmpty())
+				round.getResults().add(result);
+
 			if (players.size() == round.getResults().size())
 				round.setStarted(false);
 		}
@@ -93,38 +106,48 @@ public class Room {
 	public void result(Player player, Correction correction) {
 		Optional<Round> roundOptional = rounds.stream().filter(r -> !r.isCalculated()).findFirst();
 
+		correction.setPlayer(player);
+
 		if (roundOptional.isPresent()) {
 			Round round = roundOptional.get();
 
-			round.addCorrections(correction);
+			// @formatter:off
+			List<Correction> correctionsMyPlayer = round.getCorrections().stream()
+					.filter(p -> p.getPlayer().getNumber() == player.getNumber())
+					.collect(Collectors.toList());
+			// @formatter:on
 
-			if (this.players.size() == round.getCorrections().size()) {
-				round.setCalculated(true);
-				List<Result> results = round.getResults();
-				List<Correction> corrections = round.getCorrections();
-				// TODO melhorar isso
-				int correctionsSize = corrections.size() - 1;
-				for (Result r : results) {
-					for (Category category : r.getCategories()) {
-						int correctionsResult = 0;
-						for (Correction correctionTmp : corrections) {
-							// @formatter:off
-							List<Approval> approvals = correctionTmp.getApprovals().stream()
-									.filter(a -> a.getPlayer().getNumber() == r.getPlayer().getNumber())
-								.collect(Collectors.toList());
-							
-							List<Checklist> checklists = approvals.stream()
-									.flatMap(a -> a.getChecklist().stream())
-									.filter(a -> a.getCategory().getValue().equals(category.getValue()))
-								.collect(Collectors.toList());
-							
-							for (Checklist checklist : checklists) {
-								correctionsResult = checklist.isValid() ? correctionsResult + 1 : correctionsResult;
+			if (correctionsMyPlayer.isEmpty()) {
+				round.addCorrections(correction);
+
+				if (this.players.size() == round.getCorrections().size()) {
+					round.setCalculated(true);
+					List<Result> results = round.getResults();
+					List<Correction> corrections = round.getCorrections();
+					// TODO melhorar isso
+					int correctionsSize = corrections.size() - 1;
+					for (Result r : results) {
+						for (Category category : r.getCategories()) {
+							int correctionsResult = 0;
+							for (Correction correctionTmp : corrections) {
+								// @formatter:off
+								List<Approval> approvals = correctionTmp.getApprovals().stream()
+										.filter(a -> a.getPlayer().getNumber() == r.getPlayer().getNumber())
+										.collect(Collectors.toList());
+								
+								List<Checklist> checklists = approvals.stream()
+										.flatMap(a -> a.getChecklist().stream())
+										.filter(a -> a.getCategory().getValue().equals(category.getValue()))
+										.collect(Collectors.toList());
+								
+								for (Checklist checklist : checklists) {
+									correctionsResult = checklist.isValid() ? correctionsResult + 1 : correctionsResult;
+								}
+								// @formatter:on
 							}
-							// @formatter:on
+							int score = (correctionsResult / correctionsSize) >= 0.5 ? 10 : 0;
+							r.addScore(score);
 						}
-						int score = (correctionsResult / correctionsSize) >= 0.5 ? 10 : 0;
-						r.addScore(score);
 					}
 				}
 			}

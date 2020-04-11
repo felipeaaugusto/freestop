@@ -23,6 +23,12 @@
 	color: #cee4ff;
 }
 
+@media screen and (max-height: 400px) {
+	.footer {
+		display: none;
+	}
+}
+
 .navbar {
 	background-color: #d4e0e8;
 }

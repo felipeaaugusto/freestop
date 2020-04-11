@@ -4,32 +4,39 @@ var isAdmin = localStorage.getItem("roomAdmin") || false;
 var PLAYERS = {};
 var FIRST_LOAD = true;
 var RESULTS = [];
-var LAST_RELOAD = 0; 
+var LAST_RELOAD = 0;
+var ROUNDS_PROCESSED = 0;
+var ROOM = {};
+var STOP_LOAD = false;
 // request to get room
 function getRoom()
 {
-    var numberRoom = localStorage.getItem("roomNumber");
-    $.get(IP +"/room/" + numberRoom, function(room){
-        $('#numberRoomText').text("Sala: " + room.number);
-        $('#maxPlayersRoomText').text("Número de jogadores: " + room.maxPlayer);
-        $('#roundRoomText').text(room.rounds == null ? "Próxima Rodada: " + 1 + " (" + room.totalRounds + ")" : "Próxima Rodada: " + (room.rounds.length+1) + " (" + room.totalRounds + ")");
-        fillTablePlayer(room);
-        PLAYERS = room.players || 0;
-        finished(room);
-        canStart(room);
-        start(room.started);
-        if (FIRST_LOAD)
-        {
-            if (localStorage.getItem("roundProcessed") == "true")
-            {
-                activeInterval();
-            }
-            showResult(room);
-        }
-        FIRST_LOAD = false;
-    }).fail(function() {
-        window.location.pathname = "/";
-    });
+	if (!STOP_LOAD)
+	{
+		var numberRoom = localStorage.getItem("roomNumber");
+		$.get(IP +"/room/" + numberRoom, function(room){
+			$('#numberRoomText').text("Sala: " + room.number);
+			$('#maxPlayersRoomText').text("Número de jogadores: " + room.maxPlayer);
+			$('#roundRoomText').text(room.rounds == null ? "Próxima Rodada: " + 1 + " (" + room.totalRounds + ")" : "Próxima Rodada: " + (room.rounds.length+1) + " (" + room.totalRounds + ")");
+			fillTablePlayer(room);
+			PLAYERS = room.players || 0;
+			finished(room);
+			canStart(room);
+			start(room.started);
+			if (FIRST_LOAD)
+			{
+				if (localStorage.getItem("roundProcessed") == "true")
+				{
+					activeInterval();
+				}
+				showResult(room);
+			}
+			FIRST_LOAD = false;
+			ROOM = room;
+		}).fail(function() {
+			window.location.pathname = "/";
+		});	
+	}
 }
 
 // verify if room is finished
@@ -44,7 +51,6 @@ function finished(room)
         	return !round.calculated;
         });
     }
-
     
     if (room.totalRounds == rounds && roundStarted.length == 0)
     {
@@ -79,8 +85,9 @@ function finished(room)
         });
     	 $('#roomWinnerResultText').text("Ganhador: " + playerWinner.name + " - " + playerWinner.totalScore);
     	 setTimeout(() => {
-    		 finishRoom()
+    		 $('#btn-finish-room').removeClass("d-none");
 		}, 10000);
+    	 STOP_LOAD = true;
     }
 }
 
@@ -148,8 +155,16 @@ function checkPlayerInRoom()
 function activeInterval()
 {
     setInterval(function()
-    { 
-    	if (PLAYERS.length != LAST_RELOAD)
+    {
+        var roundProcessed = [];
+        if (ROOM.rounds)
+        {
+            roundProcessed = ROOM.rounds.filter(function(round){
+            	return round.calculated;
+            });
+        }
+    	
+    	if (PLAYERS.length != LAST_RELOAD && ROUNDS_PROCESSED != roundProcessed.length)
     	{
     		var table = $("#grid-players").DataTable();
     		table.clear().draw();        	
@@ -196,10 +211,18 @@ $("#btn-create-player").click(function(){
 // fill table player
 function fillTablePlayer(room)
 {
-    var dataSet = [];
+    var roundProcessed = [];
+    if (room.rounds)
+    {
+        roundProcessed = room.rounds.filter(function(round){
+        	return round.calculated;
+        });
+    }
+	
+	var dataSet = [];
     var players = room.players;
 
-    if (players && PLAYERS.length != LAST_RELOAD)
+    if (players && PLAYERS.length != LAST_RELOAD || ROUNDS_PROCESSED != roundProcessed.length)
     {
         players.forEach(function(data)
         {
@@ -252,6 +275,7 @@ function fillTablePlayer(room)
             ]
         });
         LAST_RELOAD = PLAYERS.length;
+        ROUNDS_PROCESSED = roundProcessed.length;
     }
 }
 
