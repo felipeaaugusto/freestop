@@ -79,7 +79,7 @@ $("#btn-create-room").click(function()
     }
 
     $.ajax({
-        url: IP +'room',
+        url: IP +'/room',
         type: 'post',
         dataType: 'json',
         contentType: 'application/json',
@@ -137,7 +137,7 @@ function fillTableRoom(result)
 // request to get rooms list
 function getRooms()
 {
-    $.get(IP + "room", function(data, status){
+    $.get(IP + "/room", function(data, status){
         fillTableRoom(data);
         if (FIRST_LOAD)
         {
@@ -160,7 +160,7 @@ function postCancelRoom()
     if (isAdmin)
     {
         $.ajax({
-            url: IP +'room/' + roomNumber + '/cancel',
+            url: IP +'/room/' + roomNumber + '/cancel',
             type: 'post',
             dataType: 'json',
             contentType: 'application/json',
@@ -211,7 +211,7 @@ function checkStatusRoomSession()
     var roomNumber = localStorage.getItem("roomNumber");
     if (roomNumber != undefined)
     {
-        $.get(IP + "room/" + roomNumber + "/status", function(data, status){
+        $.get(IP + "/room/" + roomNumber + "/status", function(data, status){
             if (!data)
             {
                 localStorage.clear();

@@ -1,6 +1,6 @@
 // global variables
 // define here
-var IP = window.location.href;
+var IP = window.location.origin;
 var LETTERS = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
 var CATEGORIES = [
     {name: "Nome", value: "name"},
