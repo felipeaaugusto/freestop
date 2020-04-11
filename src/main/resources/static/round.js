@@ -9,7 +9,7 @@ var FIRST_LOAD = true;
 function getRoom()
 {
     var numberRoom = localStorage.getItem("roomNumber");
-    $.get(IP + "/room/" + numberRoom, function(data){
+    $.get(IP + "room/" + numberRoom, function(data){
         if (!data.started && FIRST_LOAD)
         {
             window.location.pathname = "room.html";
@@ -120,7 +120,7 @@ function postToStopRound()
     }
 
     $.ajax({
-        url: IP + '/room/' + roomNumber +'/stop/' + playerNumber,
+        url: IP + 'room/' + roomNumber +'/stop/' + playerNumber,
         type: 'post',
         dataType: 'json',
         contentType: 'application/json',
@@ -168,7 +168,7 @@ function activeInterval()
 {
     setInterval(function()
     { 
-        $.get(IP + "/room/time", function(data){
+        $.get(IP + "room/time", function(data){
             var dateFinish = new Date(ROUND_STARTED.dateFinish);
             var dateNow = new Date(data);
             var diff = dateNow.getTime() - dateFinish.getTime();
@@ -177,7 +177,8 @@ function activeInterval()
             stopRoundByTime(dateNow, dateFinish);
         });
         var numberRoom = localStorage.getItem("roomNumber");
-        $.get(IP +"/room/" + numberRoom, function(room) {
+        
+        $.get(IP + "room/" + numberRoom, function(room) {
             if (!room.started)
             {
                 postToStopRound();

@@ -9,7 +9,7 @@ var LAST_RELOAD = 0;
 function getRoom()
 {
     var numberRoom = localStorage.getItem("roomNumber");
-    $.get(IP +"/room/" + numberRoom, function(room){
+    $.get(IP + "room/" + numberRoom, function(room){
         $('#numberRoomText').text("Sala: " + room.number);
         $('#maxPlayersRoomText').text("Número de jogadores: " + room.maxPlayer);
         $('#roundRoomText').text(room.rounds == null ? "Próxima Rodada: " + 1 + " (" + room.totalRounds + ")" : "Próxima Rodada: " + (room.rounds.length+1) + " (" + room.totalRounds + ")");
@@ -89,7 +89,7 @@ function finishRoom()
     var roomNumber = localStorage.getItem("roomNumber");
 
     $.ajax({
-        url: IP +'/room/' + roomNumber + '/cancel',
+        url: IP + 'room/' + roomNumber + '/cancel',
         type: 'post',
         dataType: 'json',
         contentType: 'application/json',
@@ -168,7 +168,7 @@ $("#btn-create-player").click(function(){
     }
 
     $.ajax({
-        url: IP + '/room/'+ roomNumber +'/player',
+        url: IP + 'room/'+ roomNumber +'/player',
         type: 'post',
         dataType: 'json',
         contentType: 'application/json',
@@ -269,7 +269,7 @@ function removePlayer(numberPlayer)
     {
         var roomNumber = localStorage.getItem("roomNumber")
         $.ajax({
-            url: IP + '/room/'+ roomNumber +'/player/' + player.number + '/remove', 
+            url: IP + 'room/'+ roomNumber +'/player/' + player.number + '/remove', 
             type: 'post',
             dataType: 'json',
             contentType: 'application/json',
@@ -305,7 +305,7 @@ $("#btn-start-room").click(function()
     var roomNumber = localStorage.getItem("roomNumber")
 
     $.ajax({
-        url: IP + '/room/'+ roomNumber +'/start', 
+        url: IP + 'room/'+ roomNumber +'/start', 
         type: 'post',
         dataType: 'json',
         contentType: 'application/json',
@@ -428,7 +428,7 @@ function processResult()
 function sendResult(idRoom, idPlayerSession, correction)
 {
     $.ajax({
-        url: IP + '/room/' + idRoom + '/result/' + idPlayerSession, 
+        url: IP + 'room/' + idRoom + '/result/' + idPlayerSession, 
         type: 'post',
         dataType: 'json',
         contentType: 'application/json',
