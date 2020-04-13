@@ -1,0 +1,27 @@
+.chat {
+	border: 2px solid #dedede;
+	background-color: #f1f1f1;
+	border-radius: 5px;
+	padding: 10px;
+	margin: 15px;
+	border-color: #ccc;
+	background-color: #ddd;
+	overflow-y: scroll;
+	height: 200px;
+	max-height: 5000px;
+}
+
+.chat::after {
+	content: "";
+	clear: both;
+	display: table;
+}
+
+.chat-time {
+	color: #999;
+}
+
+.chat-player {
+	color: #000;
+	font-weight: 700;
+}

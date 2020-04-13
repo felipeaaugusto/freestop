@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import br.com.freestop.domain.Chat;
 import br.com.freestop.domain.Correction;
 import br.com.freestop.domain.Player;
 import br.com.freestop.domain.Result;
@@ -164,4 +165,24 @@ public class RoomController {
 		return ResponseEntity.ok(LocalDateTime.now());
 	}
 
+	@RequestMapping(path = "{numberRoom}/chat/{numberPlayer}", method = RequestMethod.POST, produces = {
+			"application/json" })
+	public @ResponseBody ResponseEntity<Chat> addMessageChat(@PathVariable Long numberRoom,
+			@PathVariable Long numberPlayer, @RequestBody Chat chat) {
+		Optional<Room> roomOptional = roomService.list().stream().filter(r -> r.getNumber() == numberRoom).findFirst();
+		if (roomOptional.isEmpty())
+			return ResponseEntity.notFound().build();
+
+		Room room = roomOptional.get();
+
+		Optional<Player> optionalPlayer = room.getPlayers().stream().filter(p -> p.getNumber() == numberPlayer)
+				.findFirst();
+		if (optionalPlayer.isEmpty())
+			return ResponseEntity.notFound().build();
+
+		Player player = optionalPlayer.get();
+
+		room.addMessage(chat, player);
+		return ResponseEntity.ok(chat);
+	}
 }

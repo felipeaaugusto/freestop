@@ -8,6 +8,7 @@ var LAST_RELOAD = 0;
 var ROUNDS_PROCESSED = 0;
 var ROOM = {};
 var STOP_LOAD = false;
+var CHAT_LAST = 0;
 // request to get room
 function getRoom()
 {
@@ -27,6 +28,7 @@ function getRoom()
 			finished(room);
 			canStart(room);
 			start(room.started);
+			loadChat(room)
 			if (FIRST_LOAD)
 			{
 				if (localStorage.getItem("roundProcessed") == "true")
@@ -34,6 +36,7 @@ function getRoom()
 					activeInterval();
 				}
 				showResult(room);
+				$("#areaChat").animate({ scrollTop: 200000 }, "fast");
 			}
 			FIRST_LOAD = false;
 			ROOM = room;
@@ -192,11 +195,12 @@ $("#btn-create-player").click(function(){
         dataType: 'json',
         contentType: 'application/json',
         data: JSON.stringify(player),
-        success: function (data) {
-            localStorage.setItem("playerNumber", data.number);
-            localStorage.setItem("playerName", data.name);
+        success: function (player) {
+            localStorage.setItem("playerNumber", player.number);
+            localStorage.setItem("playerName", player.name);
             localStorage.setItem("roundProcessed", true);
             $('#createPlayer').modal('hide');
+            sendMessageChat(roomNumber, player.number, "<strong>entrou na sala!</strong>")
             getRoom();
         },
         error: function(xhr) {
@@ -354,6 +358,23 @@ function start(started)
     }
 }
 
+function loadChat(room) {
+	if (room.chat)
+	{
+		$("#areaChat").empty();
+		room.chat.forEach(function(chat) {
+			var date = moment(new Date(chat.date)).format('MM/DD/YYYY HH:mm:ss');
+			$('<span class="chat-player">' + chat.player.name + '</span>').appendTo('#areaChat');	
+			$('<p><span class="chat-time">' + date + '</span> ' + chat.message + '</p>').appendTo('#areaChat');	
+		});
+		if (room.chat.length != CHAT_LAST)
+		{
+			$("#areaChat").animate({ scrollTop: 200000 }, "fast");
+			CHAT_LAST = room.chat.length;
+		}
+	}
+}
+
 function showResult(room)
 {
     var idPlayerSession = Number(localStorage.getItem("playerNumber"));
@@ -463,6 +484,33 @@ function sendResult(idRoom, idPlayerSession, correction)
         data: JSON.stringify(correction),
         success: function () {}
     });
+}
+
+function sendMessage() {
+	var messageText = $("#messageText").val();
+	if (messageText != "")
+	{
+		var idRoom = localStorage.getItem("roomNumber");
+		var idPlayerSession = localStorage.getItem("playerNumber");
+		sendMessageChat(idRoom, idPlayerSession, messageText);
+		$("#messageText").val("");
+	}
+}
+
+function sendMessageChat(idRoom, idPlayerSession, message)
+{
+	var chat = {
+		message: message
+	}
+	
+	$.ajax({
+		url: IP + '/room/' + idRoom + '/chat/' + idPlayerSession, 
+		type: 'post',
+		dataType: 'json',
+		contentType: 'application/json',
+		data: JSON.stringify(chat),
+		success: function () {}
+	});
 }
 
 // show modal player

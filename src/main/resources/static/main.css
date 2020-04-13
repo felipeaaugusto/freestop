@@ -23,7 +23,7 @@
 	color: #cee4ff;
 }
 
-@media screen and (max-height: 400px) {
+@media screen and (max-height: 800px) {
 	.footer {
 		display: none;
 	}

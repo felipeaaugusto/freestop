@@ -1,5 +1,6 @@
 package br.com.freestop.domain;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -36,6 +37,8 @@ public class Room {
 	private char[] letters;
 
 	private boolean started;
+
+	private List<Chat> chat;
 
 	public void addPlayer(Player player) {
 		if (isStarted())
@@ -167,6 +170,14 @@ public class Room {
 		} while (letterRaffled == 0);
 
 		return letterRaffled;
+	}
+
+	public void addMessage(Chat chat, Player player) {
+		if (Objects.isNull(this.chat))
+			this.chat = new ArrayList<>();
+		chat.setPlayer(player);
+		chat.setDate(LocalDateTime.now());
+		this.chat.add(chat);
 	}
 
 	public static Room create(int maxPlayer, char[] letters, int roundTime, int totalRounds,
