@@ -25,7 +25,16 @@ public class RoomService {
 	}
 
 	public List<Room> list() {
-		return Objects.isNull(rooms) ? new ArrayList<>() : rooms;
+		if (Objects.isNull(rooms))
+			rooms = new ArrayList<>();
+		expire();
+		return rooms;
 	}
 
+	public void expire() {
+		for (Room room : rooms) {
+			if (room.expired())
+				cancel(room);
+		}
+	}
 }

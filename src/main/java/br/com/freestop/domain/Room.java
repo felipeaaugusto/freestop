@@ -40,6 +40,8 @@ public class Room {
 
 	private List<Chat> chat;
 
+	private LocalDateTime dateStarted;
+
 	public void addPlayer(Player player) {
 		if (isStarted())
 			throw new BadRequestException("Não é permitido adicionar mais jogadores nessa sala.");
@@ -180,6 +182,10 @@ public class Room {
 		this.chat.add(chat);
 	}
 
+	public boolean expired() {
+		return dateStarted.plusHours(1).isBefore(LocalDateTime.now());
+	}
+
 	public static Room create(int maxPlayer, char[] letters, int roundTime, int totalRounds,
 			List<Category> categories) {
 		Room newRoom = new Room();
@@ -203,6 +209,7 @@ public class Room {
 		newRoom.setRoundTime(roundTime);
 		newRoom.setTotalRounds(totalRounds);
 		newRoom.setCategories(categories);
+		newRoom.setDateStarted(LocalDateTime.now());
 
 		return newRoom;
 	}
