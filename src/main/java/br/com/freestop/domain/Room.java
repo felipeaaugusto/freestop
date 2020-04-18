@@ -169,9 +169,16 @@ public class Room {
 			if (roundPlayed.isEmpty()) {
 				letterRaffled = letter;
 			}
+			if (isLetterAvailable(letter))
+				letterRaffled = 0;
 		} while (letterRaffled == 0);
 
 		return letterRaffled;
+	}
+
+	private boolean isLetterAvailable(char letter) {
+		Optional<Round> oldRound = rounds.stream().filter(r -> r.getLetter() == letter).findFirst();
+		return rounds.size() >= letters.length || oldRound.isPresent();
 	}
 
 	public void addMessage(Chat chat, Player player) {
