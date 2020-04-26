@@ -15,7 +15,7 @@ function getRoom()
             window.location.pathname = "room.html";
             return;
         }
-        $('#numberRoomText').text("Sala: " + room.id);
+        $('#idRoomText').text("Sala: " + room.id);
         $('#roundRoomText').text("Rodada: " + room.rounds.length);
         checkPlayerInRoom(room.players);
         setTimeRound(room.rounds);

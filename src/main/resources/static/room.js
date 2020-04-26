@@ -14,9 +14,9 @@ function getRoom()
 {
 	if (!STOP_LOAD)
 	{
-		var numberRoom = localStorage.getItem("idRoom");
-		$.get(IP +"/room/" + numberRoom, function(room){
-			$('#numberRoomText').text("Sala: " + room.id);
+		var idRoom = localStorage.getItem("idRoom");
+		$.get(IP +"/room/" + idRoom, function(room){
+			$('#idRoomText').text("Sala: " + room.id);
 			$('#maxPlayersRoomText').text("Número de jogadores: " + room.maxPlayer);
 			$('#roundRoomText').text(room.rounds == null ? "Próxima Rodada: " + 1 + " (" + room.totalRounds + ")" : "Próxima Rodada: " + (room.rounds.length+1) + " (" + room.totalRounds + ")");
 			if (LAST_RELOAD == undefined)
@@ -298,7 +298,7 @@ function removePlayer(idPlayer)
         }
     });
 
-    if (!player.admin || localStorage.getItem("idPlayer") != numberPlayer)
+    if (!player.admin || localStorage.getItem("idPlayer") != idPlayer)
     {
         var idRoom = localStorage.getItem("idRoom")
         $.ajax({

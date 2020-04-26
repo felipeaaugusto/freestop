@@ -48,7 +48,7 @@ $("#btn-go-room").click(function()
 
 function goToRoom(idRoom)
 {
-    if (numberRoom != undefined)
+    if (idRoom != undefined)
     {
         localStorage.setItem("idRoom", Number(idRoom));
     }
@@ -182,7 +182,7 @@ function openModalCancelRoom()
     if (isAdmin)
     {
         $('#cancelRoom').modal('show');
-        $('#numberRoomTextModalCancelRoom').text("Cancelar Sala: " + idRoom);
+        $('#idRoomTextModalCancelRoom').text("Cancelar Sala: " + idRoom);
     }
 }
 
