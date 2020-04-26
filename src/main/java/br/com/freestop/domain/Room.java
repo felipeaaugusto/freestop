@@ -191,15 +191,15 @@ public class Room {
 		Room newRoom = new Room();
 
 		if (maxPlayer <= 1)
-			throw new BadRequestException("Mínimo número de jogadores é 2!");
+			throw new BadRequestException("Número mínimo de jogadores é 2!");
 		if (roundTime < 60)
-			throw new BadRequestException("Mínimo quantidade de segundos para cada rodada é 60!");
+			throw new BadRequestException("Quantidade mínima é 60 segundos!");
 		if (totalRounds < 3)
-			throw new BadRequestException("Mínimo número de rodadas é 3!");
+			throw new BadRequestException("Número mínimo de rodadas é 3!");
 		if (letters.length < 2)
-			throw new BadRequestException("Mínimo número de letras é 2!");
+			throw new BadRequestException("Número mínimo de letras é 2!");
 		if (categories.size() < 2)
-			throw new BadRequestException("Mínimo número de categorias é 2!");
+			throw new BadRequestException("Número mínimo de categorias é 2!");
 
 		Random random = new Random();
 
