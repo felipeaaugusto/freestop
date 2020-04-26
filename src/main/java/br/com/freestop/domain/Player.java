@@ -15,5 +15,5 @@ public class Player {
 
 	private boolean admin;
 
-	private int number;
+	private int id;
 }
