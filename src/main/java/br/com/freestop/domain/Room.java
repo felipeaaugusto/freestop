@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Room {
 
-	private int number;
+	private int id;
 
 	private int maxPlayer;
 
@@ -53,7 +53,7 @@ public class Room {
 			throw new BadRequestException(String.format("Máximo %s de jogadores permitido!", maxPlayer));
 
 		Random random = new Random();
-		player.setNumber(random.nextInt(100000));
+		player.setId(random.nextInt(100000));
 		players.add(player);
 	}
 
@@ -94,7 +94,7 @@ public class Room {
 
 			// @formatter:off
 			List<Result> results = round.getResults().stream()
-					.filter(r -> r.getPlayer().getNumber() == player.getNumber())
+					.filter(r -> r.getPlayer().getId() == player.getId())
 				.collect(Collectors.toList());
 			// @formatter:on
 
@@ -118,7 +118,7 @@ public class Room {
 
 			// @formatter:off
 			List<Correction> correctionsMyPlayer = round.getCorrections().stream()
-					.filter(p -> p.getPlayer().getNumber() == player.getNumber())
+					.filter(p -> p.getPlayer().getId() == player.getId())
 					.collect(Collectors.toList());
 			// @formatter:on
 
@@ -137,7 +137,7 @@ public class Room {
 							for (Correction correctionTmp : corrections) {
 								// @formatter:off
 								List<Approval> approvals = correctionTmp.getApprovals().stream()
-										.filter(a -> a.getPlayer().getNumber() == r.getPlayer().getNumber())
+										.filter(a -> a.getPlayer().getId() == r.getPlayer().getId())
 										.collect(Collectors.toList());
 								
 								List<Checklist> checklists = approvals.stream()
@@ -203,7 +203,7 @@ public class Room {
 
 		Random random = new Random();
 
-		newRoom.setNumber(random.nextInt(100000));
+		newRoom.setId(random.nextInt(100000));
 		newRoom.setMaxPlayer(maxPlayer);
 		newRoom.setLetters(letters);
 		newRoom.setRoundTime(roundTime);
