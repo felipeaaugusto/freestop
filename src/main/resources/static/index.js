@@ -24,14 +24,14 @@ function addEventTableRoom()
     $('#grid-rooms tbody').on('click', 'tr', function () {
         if($(this).hasClass('selected')){
             $(this).removeClass('selected');
-            localStorage.removeItem("roomNumber");
+            localStorage.removeItem("idRoom");
             $('#btn-go-room').hide();
         }
         else{
             var idRoom = Number($(this).find("td").eq(0).html());
             if (!isNaN(idRoom))
             {
-                localStorage.setItem("roomNumber", idRoom);
+                localStorage.setItem("idRoom", idRoom);
                 table.$('tr.selected').removeClass('selected');
                 $(this).addClass('selected');
                 $('#btn-go-room').show();
@@ -46,11 +46,11 @@ $("#btn-go-room").click(function()
     goToRoom();
 });
 
-function goToRoom(numberRoom)
+function goToRoom(idRoom)
 {
     if (numberRoom != undefined)
     {
-        localStorage.setItem("roomNumber", Number(numberRoom));
+        localStorage.setItem("idRoom", Number(idRoom));
     }
     window.location.href = "room.html";
 }
@@ -86,7 +86,7 @@ $("#btn-create-room").click(function()
         data: JSON.stringify(room),
         success: function (data) {
             localStorage.clear();
-            localStorage.setItem("roomNumber", data.number);
+            localStorage.setItem("idRoom", data.id);
             localStorage.setItem("roomAdmin", true);
             window.location.href = "room.html";
         },
@@ -109,7 +109,7 @@ function fillTableRoom(result)
     result.forEach(function(data)
     {
         dataSet.push([
-            data.number,
+            data.id,
             (data.players == null ? 0 : data.players.length) + "(" + data.maxPlayer  + ")"
         ]);
     });
@@ -154,13 +154,13 @@ function getRooms()
 
 function postCancelRoom()
 {
-    var roomNumber = localStorage.getItem("roomNumber");
+    var idRoom = localStorage.getItem("idRoom");
     var isAdmin = localStorage.getItem("roomAdmin");
 
     if (isAdmin)
     {
         $.ajax({
-            url: IP +'/room/' + roomNumber + '/cancel',
+            url: IP +'/room/' + idRoom + '/cancel',
             type: 'post',
             dataType: 'json',
             contentType: 'application/json',
@@ -176,13 +176,13 @@ function postCancelRoom()
 // alert to cancel room, when root user go to home
 function openModalCancelRoom()
 {
-    var roomNumber = localStorage.getItem("roomNumber")
+    var idRoom = localStorage.getItem("idRoom")
     var isAdmin = localStorage.getItem("roomAdmin");
 
     if (isAdmin)
     {
         $('#cancelRoom').modal('show');
-        $('#numberRoomTextModalCancelRoom').text("Cancelar Sala: " + roomNumber);
+        $('#numberRoomTextModalCancelRoom').text("Cancelar Sala: " + idRoom);
     }
 }
 
@@ -208,10 +208,10 @@ function getRoomParams()
 // request to get room status
 function checkStatusRoomSession()
 {
-    var roomNumber = localStorage.getItem("roomNumber");
-    if (roomNumber != undefined)
+    var idRoom = localStorage.getItem("idRoom");
+    if (idRoom != undefined)
     {
-        $.get(IP + "/room/" + roomNumber + "/status", function(data, status){
+        $.get(IP + "/room/" + idRoom + "/status", function(data){
             if (!data)
             {
                 localStorage.clear();

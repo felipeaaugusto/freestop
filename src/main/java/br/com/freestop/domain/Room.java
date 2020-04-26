@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Room {
 
-	private int number;
+	private int id;
 
 	private int maxPlayer;
 
@@ -53,7 +53,7 @@ public class Room {
 			throw new BadRequestException(String.format("Máximo %s de jogadores permitido!", maxPlayer));
 
 		Random random = new Random();
-		player.setNumber(random.nextInt(100000));
+		player.setId(random.nextInt(100000));
 		players.add(player);
 	}
 
@@ -94,7 +94,7 @@ public class Room {
 
 			// @formatter:off
 			List<Result> results = round.getResults().stream()
-					.filter(r -> r.getPlayer().getNumber() == player.getNumber())
+					.filter(r -> r.getPlayer().getId() == player.getId())
 				.collect(Collectors.toList());
 			// @formatter:on
 
@@ -118,7 +118,7 @@ public class Room {
 
 			// @formatter:off
 			List<Correction> correctionsMyPlayer = round.getCorrections().stream()
-					.filter(p -> p.getPlayer().getNumber() == player.getNumber())
+					.filter(p -> p.getPlayer().getId() == player.getId())
 					.collect(Collectors.toList());
 			// @formatter:on
 
@@ -137,7 +137,7 @@ public class Room {
 							for (Correction correctionTmp : corrections) {
 								// @formatter:off
 								List<Approval> approvals = correctionTmp.getApprovals().stream()
-										.filter(a -> a.getPlayer().getNumber() == r.getPlayer().getNumber())
+										.filter(a -> a.getPlayer().getId() == r.getPlayer().getId())
 										.collect(Collectors.toList());
 								
 								List<Checklist> checklists = approvals.stream()
@@ -169,9 +169,16 @@ public class Room {
 			if (roundPlayed.isEmpty()) {
 				letterRaffled = letter;
 			}
+			if (isLetterAvailable(letter))
+				letterRaffled = 0;
 		} while (letterRaffled == 0);
 
 		return letterRaffled;
+	}
+
+	private boolean isLetterAvailable(char letter) {
+		Optional<Round> oldRound = rounds.stream().filter(r -> r.getLetter() == letter).findFirst();
+		return rounds.size() >= letters.length || oldRound.isPresent();
 	}
 
 	public void addMessage(Chat chat, Player player) {
@@ -191,19 +198,19 @@ public class Room {
 		Room newRoom = new Room();
 
 		if (maxPlayer <= 1)
-			throw new BadRequestException("Mínimo número de jogadores é 2!");
+			throw new BadRequestException("Número mínimo de jogadores é 2!");
 		if (roundTime < 60)
-			throw new BadRequestException("Mínimo quantidade de segundos para cada rodada é 60!");
+			throw new BadRequestException("Quantidade mínima é 60 segundos!");
 		if (totalRounds < 3)
-			throw new BadRequestException("Mínimo número de rodadas é 3!");
+			throw new BadRequestException("Número mínimo de rodadas é 3!");
 		if (letters.length < 2)
-			throw new BadRequestException("Mínimo número de letras é 2!");
+			throw new BadRequestException("Número mínimo de letras é 2!");
 		if (categories.size() < 2)
-			throw new BadRequestException("Mínimo número de categorias é 2!");
+			throw new BadRequestException("Número mínimo de categorias é 2!");
 
 		Random random = new Random();
 
-		newRoom.setNumber(random.nextInt(100000));
+		newRoom.setId(random.nextInt(100000));
 		newRoom.setMaxPlayer(maxPlayer);
 		newRoom.setLetters(letters);
 		newRoom.setRoundTime(roundTime);

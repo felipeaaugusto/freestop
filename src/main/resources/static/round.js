@@ -8,14 +8,14 @@ var FIRST_LOAD = true;
 // request to get room
 function getRoom()
 {
-    var numberRoom = localStorage.getItem("roomNumber");
-    $.get(IP + "/room/" + numberRoom, function(room){
+    var idRoom = localStorage.getItem("idRoom");
+    $.get(IP + "/room/" + idRoom, function(room){
         if (!room.started && FIRST_LOAD)
         {
             window.location.pathname = "room.html";
             return;
         }
-        $('#numberRoomText').text("Sala: " + room.number);
+        $('#numberRoomText').text("Sala: " + room.id);
         $('#roundRoomText').text("Rodada: " + room.rounds.length);
         checkPlayerInRoom(room.players);
         setTimeRound(room.rounds);
@@ -37,7 +37,7 @@ function checkPlayerInRoom(players)
     var PLAYERS = players;
     var userExist = false;
     PLAYERS.forEach(function(player){
-        if (player.number == localStorage.getItem("playerNumber"))
+        if (player.id == localStorage.getItem("idPlayer"))
         {
             userExist = true;
         }
@@ -106,8 +106,8 @@ function stopRoundByTime(dtNow, dtFinish)
 
 function postToStopRound()
 {
-    var roomNumber = localStorage.getItem("roomNumber")
-    var playerNumber = localStorage.getItem("playerNumber")
+    var idRoom = localStorage.getItem("idRoom")
+    var idPlayer = localStorage.getItem("idPlayer")
 
     var resultCategories = []
 
@@ -124,7 +124,7 @@ function postToStopRound()
     }
 
     $.ajax({
-        url: IP + '/room/' + roomNumber +'/stop/' + playerNumber,
+        url: IP + '/room/' + idRoom +'/stop/' + idPlayer,
         type: 'post',
         dataType: 'json',
         contentType: 'application/json',
@@ -194,8 +194,8 @@ function activeInterval()
             $('#roundTimeLeftText').text("Tempo restante: " + ~~seconds + "s");
             stopRoundByTime(dateNow, dateFinish);
         });
-        var numberRoom = localStorage.getItem("roomNumber");
-        $.get(IP +"/room/" + numberRoom, function(room) {
+        var idRoom = localStorage.getItem("idRoom");
+        $.get(IP +"/room/" + idRoom, function(room) {
             if (!room.started)
             {
                 postToStopRound();
