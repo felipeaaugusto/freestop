@@ -45,7 +45,7 @@ public class RoomController {
 		return roomService.list();
 	}
 
-	@RequestMapping(path = "{numberRoom}", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(path = "{idRoom}", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseStatus(HttpStatus.OK)
 	public @ResponseBody ResponseEntity<Room> getRoom(@PathVariable Long idRoom) {
 		Optional<Room> room = roomService.list().stream().filter(r -> r.getId() == idRoom).findFirst();
@@ -54,16 +54,16 @@ public class RoomController {
 		return ResponseEntity.ok(room.get());
 	}
 
-	@RequestMapping(path = "{numberRoom}/status", method = RequestMethod.GET, produces = { "application/json" })
+	@RequestMapping(path = "{idRoom}/status", method = RequestMethod.GET, produces = { "application/json" })
 	@ResponseStatus(HttpStatus.OK)
-	public @ResponseBody ResponseEntity<Boolean> getStatusRoom(@PathVariable Long irRoom) {
-		Optional<Room> room = roomService.list().stream().filter(r -> r.getId() == irRoom).findFirst();
+	public @ResponseBody ResponseEntity<Boolean> getStatusRoom(@PathVariable Long idRoom) {
+		Optional<Room> room = roomService.list().stream().filter(r -> r.getId() == idRoom).findFirst();
 		if (room.isEmpty())
 			return ResponseEntity.ok(false);
 		return ResponseEntity.ok(true);
 	}
 
-	@RequestMapping(path = "{numberRoom}/start", method = RequestMethod.POST, produces = { "application/json" })
+	@RequestMapping(path = "{idRoom}/start", method = RequestMethod.POST, produces = { "application/json" })
 	public @ResponseBody ResponseEntity<Room> start(@PathVariable Long idRoom) {
 		Optional<Room> roomOptional = roomService.list().stream().filter(r -> r.getId() == idRoom).findFirst();
 		if (roomOptional.isEmpty())
@@ -76,8 +76,7 @@ public class RoomController {
 		return ResponseEntity.ok(room);
 	}
 
-	@RequestMapping(path = "{numberRoom}/stop/{numberPlayer}", method = RequestMethod.POST, produces = {
-			"application/json" })
+	@RequestMapping(path = "{idRoom}/stop/{idPlayer}", method = RequestMethod.POST, produces = { "application/json" })
 	public @ResponseBody ResponseEntity<Room> stop(@PathVariable Long idRoom, @PathVariable Long idPlayer,
 			@RequestBody Result result) {
 		Optional<Room> roomOptional = roomService.list().stream().filter(r -> r.getId() == idRoom).findFirst();
@@ -96,8 +95,7 @@ public class RoomController {
 		return ResponseEntity.ok(room);
 	}
 
-	@RequestMapping(path = "{numberRoom}/result/{numberPlayer}", method = RequestMethod.POST, produces = {
-			"application/json" })
+	@RequestMapping(path = "{idRoom}/result/{idPlayer}", method = RequestMethod.POST, produces = { "application/json" })
 	public @ResponseBody ResponseEntity<Room> result(@PathVariable Long idRoom, @PathVariable Long idPlayer,
 			@RequestBody Correction correction) {
 		Optional<Room> roomOptional = roomService.list().stream().filter(r -> r.getId() == idRoom).findFirst();
@@ -116,7 +114,7 @@ public class RoomController {
 		return ResponseEntity.ok(room);
 	}
 
-	@RequestMapping(path = "{numberRoom}/cancel", method = RequestMethod.POST, produces = { "application/json" })
+	@RequestMapping(path = "{idRoom}/cancel", method = RequestMethod.POST, produces = { "application/json" })
 	public @ResponseBody ResponseEntity<Room> cancel(@PathVariable Long idRoom) {
 		Optional<Room> roomOptional = roomService.list().stream().filter(r -> r.getId() == idRoom).findFirst();
 		if (roomOptional.isEmpty())
@@ -127,7 +125,7 @@ public class RoomController {
 		return ResponseEntity.ok(room);
 	}
 
-	@RequestMapping(path = "{numberRoom}/player", method = RequestMethod.POST, produces = { "application/json" })
+	@RequestMapping(path = "{idRoom}/player", method = RequestMethod.POST, produces = { "application/json" })
 	public @ResponseBody ResponseEntity<Player> addPlayer(@PathVariable Long idRoom, @RequestBody Player player) {
 		Optional<Room> roomOptional = roomService.list().stream().filter(r -> r.getId() == idRoom).findFirst();
 		if (roomOptional.isEmpty())
@@ -138,7 +136,7 @@ public class RoomController {
 		return ResponseEntity.ok(player);
 	}
 
-	@RequestMapping(path = "{numberRoom}/player/{numberPlayer}/remove", method = RequestMethod.POST, produces = {
+	@RequestMapping(path = "{idRoom}/player/{idPlayer}/remove", method = RequestMethod.POST, produces = {
 			"application/json" })
 	public @ResponseBody ResponseEntity<Player> removePlayer(@PathVariable Long idRoom, @PathVariable Long idPlayer) {
 		Optional<Room> roomOptional = roomService.list().stream().filter(r -> r.getId() == idRoom).findFirst();
@@ -161,8 +159,7 @@ public class RoomController {
 		return ResponseEntity.ok(LocalDateTime.now());
 	}
 
-	@RequestMapping(path = "{numberRoom}/chat/{numberPlayer}", method = RequestMethod.POST, produces = {
-			"application/json" })
+	@RequestMapping(path = "{idRoom}/chat/{idPlayer}", method = RequestMethod.POST, produces = { "application/json" })
 	public @ResponseBody ResponseEntity<Chat> addMessageChat(@PathVariable Long idRoom, @PathVariable Long idPlayer,
 			@RequestBody Chat chat) {
 		Optional<Room> roomOptional = roomService.list().stream().filter(r -> r.getId() == idRoom).findFirst();

@@ -395,7 +395,7 @@ function showResult(room)
                 var player = result.player;
                 if (idPlayerSession != player.id)
                 {
-                    $('<div id="' + 'player_id_' + player d + '" class="col-sm-12 text-center padding-top half-padding-bottom">Jogador</div>').appendTo('#areaResult');
+                    $('<div id="' + 'player_id_' + player.id + '" class="col-sm-12 text-center padding-top half-padding-bottom">Jogador</div>').appendTo('#areaResult');
                     var categories = result.categories;
                     categories.forEach(function(catResult){
                         CATEGORIES.forEach(function(catDefault)
