@@ -388,7 +388,7 @@ function showResult(room)
         
         roundsFiltered.forEach(function(round)
         {
-            $('#numberRoundModalResultText').text("Resultado da Rodada: " + round.id);
+            $('#numberRoundModalResultText').text("Resultado da Rodada: " + round.number);
             RESULTS = round.results;
             RESULTS.forEach(function(result)
             {
