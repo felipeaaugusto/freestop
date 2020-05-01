@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import br.com.freestop.exception.BadRequestException;
@@ -19,6 +20,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Room {
+
+	private final static Logger LOGGER = Logger.getLogger(Room.class.getName());
 
 	private int id;
 
@@ -43,6 +46,7 @@ public class Room {
 	private LocalDateTime dateStarted;
 
 	public void addPlayer(Player player) {
+		LOGGER.info(String.format("Iniciando - adicionando novo player sala id: %s player: %s", id, player));
 		if (isStarted())
 			throw new BadRequestException("Não é permitido adicionar mais jogadores nessa sala.");
 		if (Objects.isNull(player.getName()))
@@ -54,6 +58,7 @@ public class Room {
 
 		Random random = new Random();
 		player.setId(random.nextInt(100000));
+		LOGGER.info(String.format("Finalizando - novo player adicionado sala id: %s player: %s", id, player));
 		players.add(player);
 	}
 
@@ -62,6 +67,7 @@ public class Room {
 	}
 
 	public void start() {
+		LOGGER.info(String.format("Iniciando - criando novo round sala id: %s", id));
 		if (maxPlayer != players.size())
 			throw new BadRequestException("Mínimo de jogadores não atingido.");
 		if (categories.size() < 2)
@@ -74,7 +80,8 @@ public class Room {
 		char letter = raffleLetter();
 		Round newRound = Round.create(rounds.size() + 1, letter, roundTime);
 		rounds.add(newRound);
-
+		LOGGER.info(
+				String.format("Finalizando - novo round criado sala id: %s round id: %s", id, newRound.getNumber()));
 		started = true;
 	}
 
@@ -85,6 +92,8 @@ public class Room {
 
 		if (roundOptional.isPresent()) {
 			Round round = roundOptional.get();
+			LOGGER.info(String.format("Iniciando - finalizando round id: %s sala id: %s player id: %s",
+					round.getNumber(), id, player.getId()));
 
 			if (Objects.isNull(round.getPlayer()))
 				round.setPlayer(player);
@@ -103,6 +112,8 @@ public class Room {
 
 			if (players.size() == round.getResults().size())
 				round.setStarted(false);
+			LOGGER.info(String.format("Finalizando - round id: %s sala id: %s player id: %s finalizado com sucesso",
+					round.getNumber(), id, player.getId()));
 		}
 
 		started = false;
@@ -115,6 +126,9 @@ public class Room {
 
 		if (roundOptional.isPresent()) {
 			Round round = roundOptional.get();
+
+			LOGGER.info(String.format("Iniciando - correção round id: %s sala id: %s player id: %s", round.getNumber(),
+					id, player.getId()));
 
 			// @formatter:off
 			List<Correction> correctionsMyPlayer = round.getCorrections().stream()
@@ -156,6 +170,9 @@ public class Room {
 					}
 				}
 			}
+
+			LOGGER.info(String.format("Finalizando - finalizado correção round id: %s sala id: %s player id: %s",
+					round.getNumber(), id, player.getId()));
 		}
 	}
 
@@ -197,6 +214,10 @@ public class Room {
 			List<Category> categories) {
 		Room newRoom = new Room();
 
+		LOGGER.info(String.format(
+				"Inicializando criação da sala: maxPlayer: %s, letters: %s, roundTime: %s, totalRounds: %s, categories: %s",
+				maxPlayer, letters, roundTime, totalRounds, categories));
+
 		if (maxPlayer <= 1)
 			throw new BadRequestException("Número mínimo de jogadores é 2!");
 		if (roundTime < 60)
@@ -217,6 +238,8 @@ public class Room {
 		newRoom.setTotalRounds(totalRounds);
 		newRoom.setCategories(categories);
 		newRoom.setDateStarted(LocalDateTime.now());
+
+		LOGGER.info("Finalizando criação da sala: " + newRoom);
 
 		return newRoom;
 	}

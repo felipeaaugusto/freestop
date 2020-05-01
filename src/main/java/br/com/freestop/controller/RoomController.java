@@ -3,6 +3,7 @@ package br.com.freestop.controller;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,8 @@ import br.com.freestop.service.RoomService;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class RoomController {
 
+	private final static Logger LOGGER = Logger.getLogger(RoomController.class.getName());
+
 	@Autowired
 	RoomService roomService;
 
@@ -51,6 +54,7 @@ public class RoomController {
 		Optional<Room> room = roomService.list().stream().filter(r -> r.getId() == idRoom).findFirst();
 		if (room.isEmpty())
 			return ResponseEntity.notFound().build();
+		LOGGER.info("Buscando informações da sala id: " + idRoom);
 		return ResponseEntity.ok(room.get());
 	}
 
